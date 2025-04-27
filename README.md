@@ -1,3 +1,15 @@
+#Build
+
+for build you have to install cmake
+
+#windows:
+
+cmake ./
+
+
+
+
+
 Ctrl + E to Open and Close Editor mode of Engine
 
 in Editor Mode Ctrl + C for open console
