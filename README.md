@@ -1,8 +1,8 @@
-#Build
+# Build
 
 for build you have to install cmake
 
-#windows:
+# windows:
 
 cmake ./
 
@@ -14,17 +14,17 @@ Ctrl + E to Open and Close Editor mode of Engine
 
 in Editor Mode Ctrl + C for open console
 
-#console commands
+# console commands
 
-#1.load scene
+# 1.load scene
 
 load scene_name.scene
 
-#2.clear command
+# 2.clear command
 
 for clear command line
 
-#3.reset command
+# 3.reset command
 
 for reset scene
 
