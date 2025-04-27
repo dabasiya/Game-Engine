@@ -35,3 +35,9 @@ for reset scene
 to add new script to engine you have to derive entityscript component it has three virtual function, void start(), void update(float deltatime), void onEvent(Event& e).
 
 after create script component you have to register it in scriptmanager component with a unique name.
+
+# Screenshots
+
+![Game Engine Screenshot1](screenshots/1.png)
+![Game Engine Screenshot2](screenshots/2.png)
+![Game Engine Screenshot3](screenshots/3.png)
