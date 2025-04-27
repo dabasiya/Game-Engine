@@ -1,0 +1,49 @@
+0:
+  index: 8
+  coords1: [0, 0.980000019]
+  coords2: [0.140000001, 0]
+  xmultiplier: 1
+  ymultiplier: 1
+  time: 0.0700000003
+1:
+  index: 8
+  coords1: [0.142000005, 0.980000019]
+  coords2: [0.284000009, 0]
+  xmultiplier: 1
+  ymultiplier: 1
+  time: 0.140000001
+2:
+  index: 8
+  coords1: [0.284000009, 0.980000019]
+  coords2: [0.425999999, 0]
+  xmultiplier: 1
+  ymultiplier: 1
+  time: 0.209999993
+3:
+  index: 8
+  coords1: [0.425999999, 0.980000019]
+  coords2: [0.568000019, 0]
+  xmultiplier: 1
+  ymultiplier: 1
+  time: 0.280000001
+4:
+  index: 8
+  coords1: [0.568000019, 0.980000019]
+  coords2: [0.709999979, 0]
+  xmultiplier: 1
+  ymultiplier: 1
+  time: 0.349999994
+5:
+  index: 8
+  coords1: [0.709999979, 0.980000019]
+  coords2: [0.851999998, 0]
+  xmultiplier: 1
+  ymultiplier: 1
+  time: 0.419999987
+6:
+  index: 8
+  coords1: [0.851999998, 0.980000019]
+  coords2: [0.994000018, 0]
+  xmultiplier: 1
+  ymultiplier: 1
+  time: 0.49000001

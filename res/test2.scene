@@ -1,0 +1,246 @@
+Scene: Undefined
+texture2:
+  path: res/maptest.png
+texture3:
+  path: res/traptest.png
+texture4:
+  path: res/level_1_bg_1.png
+texture5:
+  path: res/level_1_bg_2.png
+texture6:
+  path: res/level_1_bg_3.png
+texture7:
+  path: res/skyl1.png
+texture8:
+  path: res/enemytest.png
+texture9:
+  path: res/smoke.png
+texture10:
+  path: res/level_texture.png
+texture11:
+  path: res/smoke.png
+texture13:
+  path: res/new_player/ss.png
+texture14:
+  path: res/plank.png
+texture15:
+  path: res/icons.png
+Entities:
+  - Entity: 7
+    NameComponent:
+      name: top
+      active: true
+    TransformComponent:
+      position: [-1.54806805, -5.46184444, 9.99999975e-05]
+      rotation: [0, 0, 94.1922302]
+      scale: [2, 1, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 10
+        coords1: [0.25, 1]
+        coords2: [0.5, 0.875]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: ForceApplier
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 0
+    BoxCollider2DComponent:
+      density: 1
+      friction: 0.400000006
+      objectid: 8
+      width: 2
+      height: 1
+      isSensor: true
+    ParticleGeneratorComponent:
+      subtexture:
+        index: 11
+        coords1: [0, 1]
+        coords2: [1, 0]
+      count: 60
+      velocity: [0, 0.100000001]
+      velocityvariation: [0.100000001, 0]
+      generate_particle_from_area: false
+      active: false
+      beginsize: 1
+      endsize: 0
+      lifetime: 0.300000012
+      sizevariation: 0
+      colorbegin: [1, 1, 1, 1]
+      colorend: [1, 1, 1, 0.5]
+  - Entity: 6
+    NameComponent:
+      name: ground1
+      active: true
+    TransformComponent:
+      position: [-6.083251, -4.27353907, 0]
+      rotation: [0, 0, 0]
+      scale: [2.28642225, 0.127849102, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [1, 1, 1, 1]
+      transparent: false
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 0
+    BoxCollider2DComponent:
+      density: 1
+      friction: 0.400000006
+      objectid: 2
+      width: 2.27999997
+      height: 0.119999997
+      isSensor: false
+  - Entity: 5
+    NameComponent:
+      name: player
+      active: true
+    TransformComponent:
+      position: [-8.03296757, -3.24065971, 0]
+      rotation: [0, 0, 0]
+      scale: [0.400000006, 0.939999998, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0.900000095, 0.899999976]
+        coords2: [1.00000012, 0.799999952]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: true
+    ScriptComponent:
+      name: player
+    RigidBody2DComponent:
+      fixedrotation: true
+      type: 2
+      id: 1
+    BoxCollider2DComponent:
+      density: 0.100000001
+      friction: 0.400000006
+      objectid: 1
+      width: 0.400000006
+      height: 0.939999998
+      isSensor: false
+    AnimationGroupComponent:
+      0:
+        key: idle
+        path: res/acreator.anim
+      1:
+        key: run
+        path: res/player_run.animation
+      2:
+        key: jump
+        path: res/player_jump.animation
+  - Entity: 4
+    NameComponent:
+      name: ground2
+      active: true
+    TransformComponent:
+      position: [-3.52130795, -3.81565928, 0]
+      rotation: [0, 0, 0]
+      scale: [1.63230896, 0.182358265, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [1, 1, 1, 1]
+      transparent: false
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 0
+    BoxCollider2DComponent:
+      density: 1
+      friction: 0.400000006
+      objectid: 2
+      width: 1.63
+      height: 0.180000007
+      isSensor: false
+  - Entity: 3
+    NameComponent:
+      name: particle_gen
+      active: true
+    TransformComponent:
+      position: [-4.57879019, -3.71754169, -0.300000012]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+  - Entity: 2
+    NameComponent:
+      name: map_left_boundary
+      active: true
+    TransformComponent:
+      position: [-10.422205, -1.210109, 0]
+      rotation: [0, 0, 0]
+      scale: [1.78493595, 12.893959, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [0.5, 0.800000012, 0.600000024, 1]
+      transparent: false
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 0
+    BoxCollider2DComponent:
+      density: 1
+      friction: 0.400000006
+      objectid: 2
+      width: 1.77999997
+      height: 12.8900003
+      isSensor: false
+  - Entity: 1
+    NameComponent:
+      name: bottom_ground_1
+      active: true
+    TransformComponent:
+      position: [-0.277502537, -5.399405, 0]
+      rotation: [0, 0, 0]
+      scale: [25.4132824, 1, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [0.300000012, 1, 0.5, 1]
+      transparent: false
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 2
+    BoxCollider2DComponent:
+      density: 1
+      friction: 0.400000006
+      objectid: 2
+      width: 25.4099998
+      height: 1
+      isSensor: false
+  - Entity: 0
+    NameComponent:
+      name: camera
+      active: true
+    TransformComponent:
+      position: [-0.341949463, -0.358783722, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    CameraComponent:
+      min_x: -1000
+      max_x: 1000
+      min_y: -1000
+      max_y: 1000
+      camera:
+        near: -1
+        far: 1
+        size: 11
+      primary: true

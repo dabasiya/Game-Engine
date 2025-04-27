@@ -1,0 +1,15 @@
+0:
+  index: 4
+  coords1: [0, 1]
+  coords2: [0.33, 0]
+  time: 0.33
+1:
+  index: 4
+  coords1: [0.33, 1]
+  coords2: [0.66, 0]
+  time: 0.66
+2:
+  index: 4
+  coords1: [0.66, 1]
+  coords2: [1, 0]
+  time: 1

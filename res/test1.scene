@@ -1,0 +1,406 @@
+Scene: Undefined
+texture2:
+  path: res/maptest.png
+texture3:
+  path: res/traptest.png
+texture4:
+  path: res/level_1_bg_1.png
+texture5:
+  path: res/level_1_bg_2.png
+texture6:
+  path: res/level_1_bg_3.png
+texture7:
+  path: res/skyl1.png
+texture8:
+  path: res/enemytest.png
+texture9:
+  path: res/enemygenerator.png
+texture10:
+  path: res/level_texture.png
+texture11:
+  path: res/smoke.png
+texture13:
+  path: res/new_player/ss.png
+texture14:
+  path: res/plank.png
+texture15:
+  path: res/icons.png
+Entities:
+  - Entity: 14
+    NameComponent:
+      name: bg_1
+      active: true
+    TransformComponent:
+      position: [-1.73504257, -5.22596645, -0.100000001]
+      rotation: [0, 0, 0]
+      scale: [53.3186378, 6.3602581, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0, 0.99000001]
+        coords2: [1, 0]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+  - Entity: 13
+    NameComponent:
+      name: path
+      active: true
+    TransformComponent:
+      position: [-10.187809, -4.34539175, 0]
+      rotation: [0, 0, 0]
+      scale: [2.53121901, 1.30475712, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 10
+        coords1: [0, 1]
+        coords2: [0.25, 0.875]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 2
+    ChainShapeColliderComponent:
+      0:
+        x: 0.917206287
+        y: 0.0172455311
+      1:
+        x: -0.0803155899
+        y: 0.0281472206
+      2:
+        x: -1.02877951
+        y: 0.0117945671
+      objectid: 6
+  - Entity: 12
+    NameComponent:
+      name: player
+      active: true
+    TransformComponent:
+      position: [-12.890646, -4.65172529, 0.100000001]
+      rotation: [0, 0, 0]
+      scale: [0.333333313, 0.783333302, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: true
+    ScriptComponent:
+      name: player
+    RigidBody2DComponent:
+      fixedrotation: true
+      type: 2
+      id: 1
+    BoxCollider2DComponent:
+      density: 0.100000001
+      friction: 1
+      objectid: 1
+      width: 0.400000006
+      height: 0.800000012
+      isSensor: false
+    AnimationGroupComponent:
+      0:
+        key: idle
+        path: res/acreator.anim
+      1:
+        key: run
+        path: res/player_run.animation
+      2:
+        key: jump
+        path: res/player_jump.animation
+  - Entity: 11
+    NameComponent:
+      name: Sky
+      active: true
+    TransformComponent:
+      position: [-1.59860945, 0, -1]
+      rotation: [0, 0, 0]
+      scale: [51.2745438, 12.0827503, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 7
+        coords1: [0, 1]
+        coords2: [1, 0]
+      type: true
+      color: [0, 0.699999988, 1, 1]
+      transparent: false
+  - Entity: 10
+    NameComponent:
+      name: maptest
+      active: true
+    TransformComponent:
+      position: [0, -1.05302286, 0]
+      rotation: [0, 0, 0]
+      scale: [35.5, 10, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 2
+        coords1: [0, 1]
+        coords2: [1, 0]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+  - Entity: 9
+    NameComponent:
+      name: camera
+      active: true
+    TransformComponent:
+      position: [-10.4799995, -2.28122401, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    CameraComponent:
+      min_x: -10.4799995
+      max_x: 1000
+      min_y: -1000
+      max_y: 1000
+      camera:
+        near: -1
+        far: 1
+        size: 7.5
+      primary: true
+    ScriptComponent:
+      name: playerfollowcamera
+  - Entity: 8
+    NameComponent:
+      name: map_collider_1
+      active: true
+    TransformComponent:
+      position: [-7.78543186, -5.33151627, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 0
+    ChainShapeColliderComponent:
+      0:
+        x: 10.8321123
+        y: 1.81498814
+      1:
+        x: 9.7399435
+        y: 1.52757454
+      2:
+        x: 9.13637447
+        y: 1.4126091
+      3:
+        x: 8.43221188
+        y: 1.18267918
+      4:
+        x: 7.16759396
+        y: 0.967119217
+      5:
+        x: 5.8742342
+        y: 0.852153778
+      6:
+        x: 3.77611732
+        y: 0.579111099
+      7:
+        x: 2.43964577
+        y: 0.406662941
+      8:
+        x: 1.04569149
+        y: 0.234214783
+      9:
+        x: -0.650047302
+        y: 0.00428390503
+      10:
+        x: -1.92903614
+        y: -0.11068058
+      11:
+        x: -3.49543858
+        y: -0.0963106155
+      12:
+        x: -4.58760929
+        y: -0.139422417
+      13:
+        x: -5.59355545
+        y: -0.225646019
+      14:
+        x: -6.77195072
+        y: -0.139422417
+      15:
+        x: -7.18869877
+        y: 1.6137991
+      16:
+        x: -7.38988876
+        y: 2.96464062
+      17:
+        x: -7.63419056
+        y: 3.88436317
+      objectid: 2
+  - Entity: 7
+    NameComponent:
+      name: map_colllider_2
+      active: true
+    TransformComponent:
+      position: [11.6689806, -5.47522354, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 0
+    ChainShapeColliderComponent:
+      0:
+        x: 6.0340395
+        y: -0.067568779
+      1:
+        x: 3.93592262
+        y: 0.262956619
+      2:
+        x: 2.11084843
+        y: 0.421033859
+      3:
+        x: 0.34325695
+        y: 0.535999298
+      4:
+        x: -1.46744728
+        y: 0.636593819
+      5:
+        x: -3.04821968
+        y: 0.837783813
+      6:
+        x: -4.47091579
+        y: 1.03897285
+      7:
+        x: -5.96546459
+        y: 1.12519646
+      objectid: 2
+  - Entity: 6
+    NameComponent:
+      name: bg_3
+      active: true
+    TransformComponent:
+      position: [0.842874527, -2.20019746, -0.300000012]
+      rotation: [0, 0, 0]
+      scale: [41.7809677, 10, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 6
+        coords1: [0, 0.99000001]
+        coords2: [1, 0]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+  - Entity: 5
+    NameComponent:
+      name: parallax
+      active: true
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    ScriptComponent:
+      name: parallax_bg_moving
+  - Entity: 4
+    NameComponent:
+      name: enemytest
+      active: true
+    TransformComponent:
+      position: [13.801301, -519.281555, 0.100000001]
+      rotation: [0, 0, 1487.14746]
+      scale: [0.400000006, 0.400000006, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 8
+        coords1: [0, 0.99000001]
+        coords2: [1, 0]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: enemytest
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 2
+      id: 1
+    BoxCollider2DComponent:
+      density: 1
+      friction: 0.400000006
+      objectid: 3
+      width: 0.400000006
+      height: 0.400000006
+      isSensor: false
+  - Entity: 3
+    NameComponent:
+      name: EnemyGenerator
+      active: true
+    TransformComponent:
+      position: [-9.74975395, -2.04113007, 0.00999999978]
+      rotation: [0, 0, 0]
+      scale: [1.26015854, 1.53072357, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 9
+        coords1: [0, 1]
+        coords2: [1, 0]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: EnemyGenerator
+  - Entity: 2
+    NameComponent:
+      name: particleg
+      active: true
+    TransformComponent:
+      position: [-4.56583595, -1.14915729, -0.209999993]
+      rotation: [0, 0, 0]
+      scale: [10, 10, 1]
+    ScriptComponent:
+      name: movingpgtest
+    ParticleGeneratorComponent:
+      subtexture:
+        index: 11
+        coords1: [0, 1]
+        coords2: [1, 0]
+      count: 30
+      velocity: [0, 0]
+      velocityvariation: [0, 0]
+      generate_particle_from_area: true
+      active: true
+      beginsize: 3
+      endsize: 0
+      lifetime: 5
+      sizevariation: 0.5
+      colorbegin: [1, 1, 1, 0.5]
+      colorend: [0.699999988, 0.200000003, 0.300000012, 0]
+  - Entity: 1
+    NameComponent:
+      name: bg_2
+      active: true
+    TransformComponent:
+      position: [1.24224389, -3.16551065, -0.200000003]
+      rotation: [0, 0, 0]
+      scale: [46.23489, 10, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 5
+        coords1: [0, 0.99000001]
+        coords2: [1, 0]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+  - Entity: 0
+    NameComponent:
+      name: spawn_cp1
+      active: true
+    TransformComponent:
+      position: [-12.8211002, -4.28840494, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 0
+    BoxCollider2DComponent:
+      density: 1
+      friction: 0.400000006
+      objectid: 7
+      width: 1
+      height: 1
+      isSensor: true

@@ -1,0 +1,10 @@
+^D:\VINAY\MY GAME ENGINE\GTOCH\CMAKEFILES\A35E97107E2072C10214C7214544AD1D\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SD:/Vinay/my game engine/gtoch" "-BD:/Vinay/my game engine/gtoch" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "D:/Vinay/my game engine/gtoch/Game_Engine.sln"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

@@ -1,0 +1,106 @@
+Scene: Undefined
+texture5:
+  path: res/smoke.png
+texture15:
+  path: res/icons.png
+Entities:
+  - Entity: 6
+    NameComponent:
+      name: Camera
+      active: true
+    TransformComponent:
+      position: [0, 0.0114722252, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    CameraComponent:
+      min_x: -1000
+      max_x: 1000
+      min_y: -1000
+      max_y: 1000
+      camera:
+        near: -1
+        far: 1
+        size: 4
+      primary: true
+  - Entity: 5
+    NameComponent:
+      name: testtitle
+      active: true
+    TransformComponent:
+      position: [0, 1.30029738, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    FontRendererComponent:
+      text: GTOCH
+      opacity: 1
+      pixelsize: 512
+  - Entity: 4
+    NameComponent:
+      name: main_menu
+      active: true
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    ScriptComponent:
+      name: main_menu
+  - Entity: 3
+    NameComponent:
+      name: Play
+      active: true
+    TransformComponent:
+      position: [0, 0.289999992, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    FontRendererComponent:
+      text: Play
+      opacity: 0.686460018
+      pixelsize: 200
+  - Entity: 2
+    NameComponent:
+      name: Setting
+      active: true
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    FontRendererComponent:
+      text: Setting
+      opacity: 0.300000012
+      pixelsize: 200
+  - Entity: 1
+    NameComponent:
+      name: particleg
+      active: true
+    TransformComponent:
+      position: [0, 0.245787978, -0.100000001]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    ParticleGeneratorComponent:
+      subtexture:
+        index: 5
+        coords1: [0, 1]
+        coords2: [1, 0]
+      count: 5
+      velocity: [0, 0]
+      velocityvariation: [0.0299999993, 0.0299999993]
+      generate_particle_from_area: false
+      active: true
+      beginsize: 2
+      endsize: 0.200000003
+      lifetime: 3
+      sizevariation: 2
+      colorbegin: [1, 0, 0, 0.400000006]
+      colorend: [0.699999988, 0.300000012, 0.200000003, 0]
+  - Entity: 0
+    NameComponent:
+      name: About
+      active: true
+    TransformComponent:
+      position: [0, -0.289999992, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    FontRendererComponent:
+      text: About
+      opacity: 0.300000012
+      pixelsize: 200

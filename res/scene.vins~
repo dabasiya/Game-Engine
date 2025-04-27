@@ -1,0 +1,74 @@
+Scene: Undefined
+texture3:
+  path: res/game_bg.png
+texture4:
+  path: res/idle_animation.png
+texture5:
+  path: res/player_test_spritesheet.png
+Entities:
+  - Entity: 5
+    NameComponent:
+      name: Camera
+    TransformComponent:
+      position: [0, 0.0114722252, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    CameraComponent:
+      camera:
+        near: -1
+        far: 1
+        size: 4
+      primary: true
+  - Entity: 4
+    NameComponent:
+      name: About
+    TransformComponent:
+      position: [0, -0.289999992, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    FontRendererComponent:
+      text: About
+      opacity: 0.5
+      pixelsize: 200
+  - Entity: 3
+    NameComponent:
+      name: Setting
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    FontRendererComponent:
+      text: Setting
+      opacity: 0.5
+      pixelsize: 200
+  - Entity: 2
+    NameComponent:
+      name: Play
+    TransformComponent:
+      position: [0, 0.289999992, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    FontRendererComponent:
+      text: Play
+      opacity: 0.161137342
+      pixelsize: 200
+  - Entity: 1
+    NameComponent:
+      name: main_menu
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    ScriptComponent:
+      name: main_menu
+  - Entity: 0
+    NameComponent:
+      name: testtitle
+    TransformComponent:
+      position: [0, 1.30029738, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    FontRendererComponent:
+      text: OMARI
+      opacity: 1
+      pixelsize: 512
