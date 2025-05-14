@@ -1,0 +1,12 @@
+#include "../src/syaml.h"
+
+/*
+  argv[1] = image count in rows
+  argv[2] = image count in cols
+  argv[3] = image count in animation
+  argv[4] = animation file save path
+*/
+
+int main(int argc, char** argv) {
+  
+}

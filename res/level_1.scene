@@ -1,0 +1,825 @@
+Scene: Undefined
+texture2:
+  path: res/maptest.png
+texture3:
+  path: res/traptest.png
+texture4:
+  path: res/level_1_bg_1.png
+texture5:
+  path: res/level_1_bg_2.png
+texture6:
+  path: res/level_1_bg_3.png
+texture7:
+  path: res/skyl1.png
+texture8:
+  path: res/enemytest.png
+texture9:
+  path: res/enemygenerator.png
+texture10:
+  path: res/level_texture.png
+texture11:
+  path: res/smoke.png
+texture13:
+  path: res/new_player/ss.png
+texture14:
+  path: res/plank.png
+texture15:
+  path: res/icons.png
+Entities:
+  - Entity: 39
+    NameComponent:
+      name: enteroption
+      active: true
+    TransformComponent:
+      position: [-1.65267885, -2.21302748, 0]
+      rotation: [0, 0, 0]
+      scale: [0.300000012, 0.300000012, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 10
+        coords1: [0, 0.875]
+        coords2: [0.125799999, 0.75]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+  - Entity: 38
+    NameComponent:
+      name: contactcount
+      active: true
+    TransformComponent:
+      position: [-6.18365383, 3.34207892, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    FontRendererComponent:
+      text: 1
+      opacity: 1
+      pixelsize: 256
+  - Entity: 37
+    NameComponent:
+      name: Plank_1
+      active: true
+    TransformComponent:
+      position: [-3.04540586, -2.04641771, 0]
+      rotation: [0, 0, 0]
+      scale: [1.58123112, 0.225025177, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [1, 1, 1, 1]
+      transparent: false
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 37
+  - Entity: 36
+    NameComponent:
+      name: Building_1
+      active: true
+    TransformComponent:
+      position: [4.83551979, -2.17154408, -0.100000001]
+      rotation: [0, 0, 0]
+      scale: [5.95660973, 3.80121112, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [0, 1, 1, 1]
+      transparent: false
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 36
+    BoxCollider2DComponent:
+      density: 1
+      friction: 0.400000006
+      objectid: 2
+      width: 1
+      height: 1
+      isSensor: false
+      sameasscale: true
+  - Entity: 35
+    NameComponent:
+      name: Camera
+      active: true
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    CameraComponent:
+      min_x: 0
+      max_x: 0
+      min_y: 0
+      max_y: 0
+      camera:
+        near: -1
+        far: 1
+        size: 7
+      cameratype: 0
+      primary: true
+  - Entity: 34
+    NameComponent:
+      name: player
+      active: true
+    TransformComponent:
+      position: [-2.05267882, -2.61302757, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0.400000006, 1]
+        coords2: [0.300000012, 0.899999976]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: player
+    RigidBody2DComponent:
+      fixedrotation: true
+      type: 2
+      id: 34
+    BoxCollider2DComponent:
+      density: 0.100000001
+      friction: 0.400000006
+      objectid: 1
+      width: 0.400000006
+      height: 0.939999998
+      isSensor: false
+      sameasscale: false
+    AnimationGroupComponent:
+      0:
+        key: idle
+        path: res/acreator.anim
+      1:
+        key: run
+        path: res/player_run.animation
+      2:
+        key: jump
+        path: res/player_jump.animation
+  - Entity: 33
+    NameComponent:
+      name: Floor_1
+      active: true
+    TransformComponent:
+      position: [-2.77699327, -3.51967716, 0]
+      rotation: [0, 0, 0]
+      scale: [9.97679138, 1, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [1, 1, 0, 1]
+      transparent: false
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 33
+    BoxCollider2DComponent:
+      density: 1
+      friction: 0.400000006
+      objectid: 2
+      width: 1
+      height: 1
+      isSensor: false
+      sameasscale: true
+  - Entity: 32
+    NameComponent:
+      name: top
+      active: true
+    TransformComponent:
+      position: [1.33084297, -3.58797979, 9.99999975e-05]
+      rotation: [0, 0, 94.1922302]
+      scale: [2, 1, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 10
+        coords1: [0.25, 1]
+        coords2: [0.5, 0.875]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: ForceApplier
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 32
+    BoxCollider2DComponent:
+      density: 1
+      friction: 0.400000006
+      objectid: 8
+      width: 2
+      height: 1
+      isSensor: true
+      sameasscale: false
+    ParticleGeneratorComponent:
+      subtexture:
+        index: 11
+        coords1: [0, 1]
+        coords2: [1, 0]
+      count: 60
+      velocity: [0, 0.100000001]
+      velocityvariation: [0.100000001, 0]
+      generate_particle_from_area: false
+      active: false
+      beginsize: 1
+      endsize: 0
+      lifetime: 0.300000012
+      sizevariation: 0
+      colorbegin: [1, 1, 1, 1]
+      colorend: [1, 1, 1, 0.5]
+  - Entity: 31
+    NameComponent:
+      name: Entity
+      active: true
+    TransformComponent:
+      position: [-3.10797119, -1.93541884, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 31
+    ChainShapeColliderComponent:
+      0:
+        x: 0.826437473
+        y: 0.0247228146
+      1:
+        x: -0.727548361
+        y: 0.00353169441
+      objectid: 6
+  - Entity: 30
+    NameComponent:
+      name: Entity
+      active: true
+    TransformComponent:
+      position: [0, -2.47931361, -0.100000001]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [1, 0, 1, 1]
+      transparent: false
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 30
+    BoxCollider2DComponent:
+      density: 1
+      friction: 0.400000006
+      objectid: 9
+      width: 1
+      height: 1
+      isSensor: true
+      sameasscale: true
+  - Entity: 29
+    NameComponent:
+      name: PlayerFadingFrame0
+      active: true
+    TransformComponent:
+      position: [-1.96193051, -1.4315449, 0]
+      rotation: [0, 0, 0]
+      scale: [0.39433834, 0.926748335, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 28
+    NameComponent:
+      name: PlayerFadingFrame1
+      active: true
+    TransformComponent:
+      position: [-1.91942644, -1.43908429, 0]
+      rotation: [0, 0, 0]
+      scale: [0.388906121, 0.913981915, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 27
+    NameComponent:
+      name: PlayerFadingFrame2
+      active: true
+    TransformComponent:
+      position: [-1.87835479, -1.44876003, 0]
+      rotation: [0, 0, 0]
+      scale: [0.383232325, 0.9006477, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 26
+    NameComponent:
+      name: PlayerFadingFrame3
+      active: true
+    TransformComponent:
+      position: [-1.83545661, -1.46147442, 0]
+      rotation: [0, 0, 0]
+      scale: [0.377756864, 0.887779653, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 25
+    NameComponent:
+      name: PlayerFadingFrame4
+      active: true
+    TransformComponent:
+      position: [-1.79405808, -1.47617292, 0]
+      rotation: [0, 0, 0]
+      scale: [0.37200743, 0.874267697, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 24
+    NameComponent:
+      name: PlayerFadingFrame5
+      active: true
+    TransformComponent:
+      position: [-1.75058794, -1.49428535, 0]
+      rotation: [0, 0, 0]
+      scale: [0.366359055, 0.860993266, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 23
+    NameComponent:
+      name: PlayerFadingFrame6
+      active: true
+    TransformComponent:
+      position: [-1.70788205, -1.51466393, 0]
+      rotation: [0, 0, 0]
+      scale: [0.361012667, 0.848428488, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 22
+    NameComponent:
+      name: PlayerFadingFrame7
+      active: true
+    TransformComponent:
+      position: [-1.66745925, -1.53626871, 0]
+      rotation: [0, 0, 0]
+      scale: [0.355603337, 0.83571583, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 21
+    NameComponent:
+      name: PlayerFadingFrame8
+      active: true
+    TransformComponent:
+      position: [-1.62656057, -1.56049871, 0]
+      rotation: [0, 0, 0]
+      scale: [0.350049675, 0.822664022, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 20
+    NameComponent:
+      name: PlayerFadingFrame9
+      active: true
+    TransformComponent:
+      position: [-1.58457077, -1.5878737, 0]
+      rotation: [0, 0, 0]
+      scale: [0.344464272, 0.80953753, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 19
+    NameComponent:
+      name: PlayerFadingFrame10
+      active: true
+    TransformComponent:
+      position: [-1.54234064, -1.6179328, 0]
+      rotation: [0, 0, 0]
+      scale: [0.33869639, 0.795982182, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 18
+    NameComponent:
+      name: PlayerFadingFrame11
+      active: true
+    TransformComponent:
+      position: [-1.49873114, -1.65166926, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 17
+    NameComponent:
+      name: PlayerFadingFrame12
+      active: true
+    TransformComponent:
+      position: [-1.4519397, -1.69096994, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 16
+    NameComponent:
+      name: PlayerFadingFrame13
+      active: true
+    TransformComponent:
+      position: [-1.41479969, -1.72411942, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 15
+    NameComponent:
+      name: PlayerFadingFrame14
+      active: true
+    TransformComponent:
+      position: [-1.36823893, -1.76874971, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 14
+    NameComponent:
+      name: PlayerFadingFrame15
+      active: true
+    TransformComponent:
+      position: [-1.33325231, -1.8040204, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 13
+    NameComponent:
+      name: PlayerFadingFrame16
+      active: true
+    TransformComponent:
+      position: [-1.29033005, -1.84990239, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 12
+    NameComponent:
+      name: PlayerFadingFrame17
+      active: true
+    TransformComponent:
+      position: [-1.24824417, -1.89740038, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 11
+    NameComponent:
+      name: PlayerFadingFrame18
+      active: true
+    TransformComponent:
+      position: [-1.20722055, -1.94608474, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 10
+    NameComponent:
+      name: PlayerFadingFrame19
+      active: true
+    TransformComponent:
+      position: [-1.16385615, -2.00021195, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 9
+    NameComponent:
+      name: PlayerFadingFrame20
+      active: true
+    TransformComponent:
+      position: [-1.12260175, -2.05411744, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 8
+    NameComponent:
+      name: PlayerFadingFrame21
+      active: true
+    TransformComponent:
+      position: [-1.08013618, -2.1121614, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 7
+    NameComponent:
+      name: PlayerFadingFrame22
+      active: true
+    TransformComponent:
+      position: [-1.03808391, -2.17214656, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 6
+    NameComponent:
+      name: PlayerFadingFrame23
+      active: true
+    TransformComponent:
+      position: [-0.997117937, -2.2329607, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 5
+    NameComponent:
+      name: PlayerFadingFrame24
+      active: true
+    TransformComponent:
+      position: [-0.952720106, -2.30166292, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 4
+    NameComponent:
+      name: PlayerFadingFrame25
+      active: true
+    TransformComponent:
+      position: [-0.911609948, -2.36767292, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 3
+    NameComponent:
+      name: PlayerFadingFrame26
+      active: true
+    TransformComponent:
+      position: [-0.870072007, -2.43681526, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 2
+    NameComponent:
+      name: PlayerFadingFrame27
+      active: true
+    TransformComponent:
+      position: [-0.829048395, -2.50748658, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 1
+    NameComponent:
+      name: PlayerFadingFrame28
+      active: true
+    TransformComponent:
+      position: [-0.786010802, -2.58425236, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames
+  - Entity: 0
+    NameComponent:
+      name: PlayerFadingFrame29
+      active: true
+    TransformComponent:
+      position: [-0.76017046, -2.6130619, 0]
+      rotation: [0, 0, 0]
+      scale: [0.333299994, 0.783299983, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 13
+        coords1: [0, 0.300000012]
+        coords2: [0.156000003, 0.200000003]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: PlayerFadingFrames

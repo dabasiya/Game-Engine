@@ -1,0 +1,5 @@
+2drapidanimationcreator  0.1(image width)    0.1(image height)    5(animation image count)      0.1(time delay between two image)
+
+	13(image index in engine scene textures)      0(start image index x)     0(start image index y)  test.animation(output animation filepath)
+
+	1(x multiplier for subtexture rendering)    1(y multiplier)

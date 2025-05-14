@@ -1,0 +1,210 @@
+0:
+  index: 13
+  coords1: [0, 0.800000012]
+  coords2: [0.156000003, 0.699999988]
+  time: 0.0199999996
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+1:
+  index: 13
+  coords1: [0.156000003, 0.800000012]
+  coords2: [0.312000006, 0.699999988]
+  time: 0.0399999991
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+2:
+  index: 13
+  coords1: [0.312000006, 0.800000012]
+  coords2: [0.467999995, 0.699999988]
+  time: 0.0599999987
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+3:
+  index: 13
+  coords1: [0.467999995, 0.800000012]
+  coords2: [0.624000013, 0.699999988]
+  time: 0.0799999982
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+4:
+  index: 13
+  coords1: [0.624000013, 0.800000012]
+  coords2: [0.780000031, 0.699999988]
+  time: 0.099999994
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+5:
+  index: 13
+  coords1: [0.780000031, 0.800000012]
+  coords2: [0.936000049, 0.699999988]
+  time: 0.11999999
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+6:
+  index: 13
+  coords1: [0, 0.699999988]
+  coords2: [0.156000003, 0.599999964]
+  time: 0.139999986
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+7:
+  index: 13
+  coords1: [0.156000003, 0.699999988]
+  coords2: [0.312000006, 0.599999964]
+  time: 0.159999982
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+8:
+  index: 13
+  coords1: [0.312000006, 0.699999988]
+  coords2: [0.467999995, 0.599999964]
+  time: 0.179999977
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+9:
+  index: 13
+  coords1: [0.467999995, 0.699999988]
+  coords2: [0.624000013, 0.599999964]
+  time: 0.199999973
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+10:
+  index: 13
+  coords1: [0.624000013, 0.699999988]
+  coords2: [0.780000031, 0.599999964]
+  time: 0.219999969
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+11:
+  index: 13
+  coords1: [0.780000031, 0.699999988]
+  coords2: [0.936000049, 0.599999964]
+  time: 0.239999965
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+12:
+  index: 13
+  coords1: [0, 0.599999964]
+  coords2: [0.156000003, 0.49999997]
+  time: 0.259999961
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+13:
+  index: 13
+  coords1: [0.156000003, 0.599999964]
+  coords2: [0.312000006, 0.49999997]
+  time: 0.279999971
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+14:
+  index: 13
+  coords1: [0.312000006, 0.599999964]
+  coords2: [0.467999995, 0.49999997]
+  time: 0.299999982
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+15:
+  index: 13
+  coords1: [0.467999995, 0.599999964]
+  coords2: [0.624000013, 0.49999997]
+  time: 0.319999993
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+16:
+  index: 13
+  coords1: [0.624000013, 0.599999964]
+  coords2: [0.780000031, 0.49999997]
+  time: 0.340000004
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+17:
+  index: 13
+  coords1: [0.780000031, 0.599999964]
+  coords2: [0.936000049, 0.49999997]
+  time: 0.360000014
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+18:
+  index: 13
+  coords1: [0, 0.49999997]
+  coords2: [0.156000003, 0.399999976]
+  time: 0.380000025
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+19:
+  index: 13
+  coords1: [0.156000003, 0.49999997]
+  coords2: [0.312000006, 0.399999976]
+  time: 0.400000036
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+20:
+  index: 13
+  coords1: [0.312000006, 0.49999997]
+  coords2: [0.467999995, 0.399999976]
+  time: 0.420000046
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+21:
+  index: 13
+  coords1: [0.467999995, 0.49999997]
+  coords2: [0.624000013, 0.399999976]
+  time: 0.440000057
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+22:
+  index: 13
+  coords1: [0.624000013, 0.49999997]
+  coords2: [0.780000031, 0.399999976]
+  time: 0.460000068
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+23:
+  index: 13
+  coords1: [0.780000031, 0.49999997]
+  coords2: [0.936000049, 0.399999976]
+  time: 0.480000079
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+24:
+  index: 13
+  coords1: [0, 0.399999976]
+  coords2: [0.156000003, 0.299999982]
+  time: 0.50000006
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+25:
+  index: 13
+  coords1: [0.156000003, 0.399999976]
+  coords2: [0.312000006, 0.299999982]
+  time: 0.520000041
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+26:
+  index: 13
+  coords1: [0.312000006, 0.399999976]
+  coords2: [0.467999995, 0.299999982]
+  time: 0.540000021
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+27:
+  index: 13
+  coords1: [0.467999995, 0.399999976]
+  coords2: [0.624000013, 0.299999982]
+  time: 0.560000002
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+28:
+  index: 13
+  coords1: [0.624000013, 0.399999976]
+  coords2: [0.780000031, 0.299999982]
+  time: 0.579999983
+  xmultiplier: 1.56799996
+  ymultiplier: 1
+29:
+  index: 13
+  coords1: [0.780000031, 0.399999976]
+  coords2: [0.936000049, 0.299999982]
+  time: 0.599999964
+  xmultiplier: 1.56799996
+  ymultiplier: 1
