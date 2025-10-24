@@ -4,11 +4,11 @@
 
 struct EntityScript {
 
-	Entity m_entity;
+	std::shared_ptr<Entity> m_entity;
 
 	template<typename T>
 	T& GetComponent() {
-		return m_entity.GetComponent<T>();
+		return m_entity->GetComponent<T>();
 	}
 
 	virtual void Start() {}

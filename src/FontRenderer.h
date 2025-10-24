@@ -1,3 +1,5 @@
+
+
 #pragma once
 
 
@@ -20,6 +22,8 @@ struct Character {
 struct FontRenderer {
 
 	FontRenderer(unsigned int fontsize, const std::string& path, unsigned int textureid);
+	~FontRenderer();
+
 
 	// for gl positions
 	void PrintString(std::string text, float x, float y, float scale, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
@@ -30,6 +34,7 @@ struct FontRenderer {
 
 	void PrintStringui(std::string text, float x, float y, float z, float scale, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
 
+
 	// deallocate memory
 	void Release();
 
@@ -39,7 +44,7 @@ struct FontRenderer {
 
 	// texture sheet for storing all characters
 
-	Texture* fonttexture;
+	std::shared_ptr<Texture> fonttexture;
 
 
 	// texture width and height
@@ -58,3 +63,5 @@ struct FontRenderer {
 
 
 };
+
+

@@ -13,6 +13,6 @@ void main() {
      int tindex = int(texindex);
      vec4 fragc = color * texture(tex[tindex], texcoords);
      if(fragc.a < 0.1)
-	discard;
+	    discard;
      fragcolor = fragc;
 }

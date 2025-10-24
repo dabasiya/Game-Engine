@@ -1,0 +1,48 @@
+Scene: Undefined
+Entities:
+  - Entity: 0
+    NameComponent:
+      name: ForceApplier
+      active: true
+    TransformComponent:
+      position: [-4.41712379, -2.57515049, 0.200000003]
+      rotation: [0, 0, 0]
+      scale: [1, 2, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 14
+        coords1: [0, 1]
+        coords2: [0.125, 0.75]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: ForceApplier
+    RigidBody2DComponent:
+      fixedrotation: false
+      type: 0
+      id: 0
+    BoxCollider2DComponent:
+      density: 1
+      friction: 0.400000006
+      objectid: 0
+      width: 0
+      height: 0
+      isSensor: false
+      sameasscale: false
+    ParticleGeneratorComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      count: 0
+      velocity: [0, 0]
+      velocityvariation: [0.100000001, 0.100000001]
+      generate_particle_from_area: false
+      active: true
+      beginsize: 1
+      endsize: 0.200000003
+      lifetime: 1
+      sizevariation: 0
+      colorbegin: [1, 1, 1, 1]
+      colorend: [1, 1, 1, 1]

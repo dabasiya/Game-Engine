@@ -6,7 +6,6 @@ SoundManager::SoundManager() {
 	FMOD::System_Create(&m_system);
 	m_system->init(512, FMOD_INIT_NORMAL, nullptr);
 
-	std::cout << "work proper" << std::endl;
 }
 
 SoundManager::~SoundManager() {

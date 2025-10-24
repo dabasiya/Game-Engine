@@ -89,6 +89,11 @@ public:
 
 	void BeginContact(b2Contact* contact) override {
 
+		// if player in touch with force applier
+		if (isContactBetweenThis(contact, objectid::Player, objectid::Force_Applier) && !player_die) {
+			onForce_Applier = true;
+		}
+
 		if (isContactBetweenThis(contact, objectid::Player_Feet, objectid::Ground)) {
 
 
@@ -160,10 +165,6 @@ public:
 			player_respawn_position = { position.x, position.y };
 		}
 
-		// if player in touch with force applier
-		else if (isContactBetweenThis(contact, objectid::Player, objectid::Force_Applier) && !player_die) {
-			onForce_Applier = true;
-		}
 
 		else if (isContactBetweenThis(contact, objectid::Player, objectid::Enter_Gate)) {
 			player_entered_enter_option = true;
@@ -171,6 +172,11 @@ public:
 	}
 
 	void EndContact(b2Contact* contact) override {
+
+		// ForceApplier and Player
+		if (isContactBetweenThis(contact, objectid::Player, objectid::Force_Applier)) {
+			onForce_Applier = false;
+		}
 
 		if (isContactBetweenThis(contact, objectid::Player_Feet, objectid::Ground)) {
 			if (count > 0)
@@ -185,10 +191,6 @@ public:
 
 		else if (isContactBetweenThis(contact, objectid::Player, objectid::Jumper))
 			onjumper = false;
-
-		else if (isContactBetweenThis(contact, objectid::Player, objectid::Force_Applier)) {
-			onForce_Applier = false;
-		}
 
 		else if (isContactBetweenThis(contact, objectid::Player, objectid::Enter_Gate)) {
 			player_entered_enter_option = false;

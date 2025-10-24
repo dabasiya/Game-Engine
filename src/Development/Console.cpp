@@ -45,7 +45,7 @@ bool Console::OnEvent(Event& e) {
 				}
 
 				if (command == "reload" || command == "reset") {
-					NewScenePath = Application::s_serializer.filepath;
+					NewScenePath = Application::GetInstance().s_serializer.filepath;
 					NewSceneLoaded = true;
 				}
  
@@ -95,7 +95,7 @@ void Console::Draw() {
 
 		// if new scene loaded then load new scene in main scene
 		if (NewSceneLoaded) {
-			Application::loadsceneruntime(NewScenePath);
+			Application::GetInstance().loadsceneruntime(NewScenePath);
 			NewSceneLoaded = false;
 		}
 
@@ -142,39 +142,10 @@ void Console::ClearConsole() {
 
 
 void Console::AddPlayer() {
-	Entity e = selectedscene->CreateEntity("player");
-
-	auto& transform = e.GetComponent<TransformComponent>();
-	transform.scale.x = 0.4f;
-	transform.scale.y = 0.94f;
 	
-	e.AddComponent<SpriteRendererComponent>().type = 1;
-
-	e.AddComponent<ScriptComponent>("player");
-
-	auto& rb = e.AddComponent<RigidBody2DComponent>();
-	rb.type = b2BodyType::b2_dynamicBody;
-	rb.fixedrotation = true;
-
-	auto& bc = e.AddComponent<BoxCollider2DComponent>();
-	bc.density = 0.1f;
-	bc.width = 0.4f;
-	bc.height = 0.94f;
-	bc.objectid = objectid::Player;
-
-	auto& ag = e.AddComponent<AnimationGroupComponent>();
-	ag.addanimationpath("idle", "res/acreator.anim");
-	ag.addanimationpath("run", "res/player_run.animation");
-	ag.addanimationpath("jump", "res/player_jump.animation");
-	ag.loadanimations();
 }
 
 void Console::AddPlayerFadingFrames() {
 
-        for(unsigned int i = 0; i<30; i++) {
-                std::string name = "PlayerFadingFrame" + std::to_string(i);
-                Entity e = selectedscene->CreateEntity(name);
-                e.AddComponent<SpriteRendererComponent>().type = 1;
-                e.AddComponent<ScriptComponent>("PlayerFadingFrames");
-        }
+       
 }

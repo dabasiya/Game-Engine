@@ -10,66 +10,74 @@
 #include <FontRenderer.h>
 #include <Development/Editorlayer.h>
 #include <Scene/Serializer.h>
-
 #include <Sound/SoundManager.h>
-
+#include <SkyBox.h>
 
 
 struct Application {
 
 	// mainwindow for display
-	Window* m_Window;
+	std::shared_ptr<Window> m_Window;
 
+	// skybox
+	SkyBox* skybox;
 
-	// shader
-	static Shader* m_Shader;
-	static Shader* particle_shader;
+	// framebuffer for g buffer
+	std::shared_ptr<FrameBuffer> gBuffer;
+	std::shared_ptr<Texture> PositionBuffer;
+	std::shared_ptr<Texture> NormalBuffer;
+	std::shared_ptr<Texture> DepthBuffer;
+	std::shared_ptr<Texture> AlbedoBuffer;
 
-	// orthographic camera
-	OrthographicCamera* m_OrthographicCamera;
 
 	// for store editormode enabled or not
-	static bool EditorMode;
+	bool EditorMode;
 
-	Entity e2;
 
-	static Texture* icons;
+	// icons for engine
+	std::shared_ptr<Texture> icons;
 
-	static Serializer s_serializer;
+	Serializer s_serializer;
 
 	// soundmanager
 
-	static SoundManager* s_SoundManager;
+	SoundManager* s_SoundManager;
 
 	// for load scene at runtime
 	void loadsceneruntime_after_mainloop();
 
-	static void loadsceneruntime(const std::string& path);
+	void loadsceneruntime(const std::string& path);
 
-	static void loadscenefrom_editor();
-	static bool load_newscene;
+	void loadscenefrom_editor();
+	bool load_newscene;
+
+	void ReCreateGBuffer();
 
 	// scene
-	Scene* m_scene;
+	std::shared_ptr<Scene> m_scene;
 
 	// fontrender
-	FontRenderer* m_fontrenderer;
+	std::shared_ptr<FontRenderer> m_fontrenderer;
 
 
-	// testing
-	Texture* test_texture;
 
 	// editorlayer
-	EditorLayer* m_editorlayer;
+	std::shared_ptr<EditorLayer> m_editorlayer;
 
 	float lasttime = 0.0f;
-
-
-	Application();
 
 	void OnEvent(Event& e);
 
 	void Run();
 
 	void Release();
+
+	static Application& GetInstance();
+
+	const char* shader_version = "#version 330 core";
+
+
+private:
+
+	Application();
 };

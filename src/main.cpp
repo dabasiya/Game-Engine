@@ -2,11 +2,11 @@
 
 int main() {
 
-	Application m_application;
+	auto& app = Application::GetInstance();
 
-	m_application.Run();
+	app.Run();
 
-	m_application.Release();
+	app.Release();
 }
 
 

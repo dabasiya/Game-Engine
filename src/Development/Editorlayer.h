@@ -12,6 +12,13 @@
 
 #include <Scene/CopiedEntity.h>
 
+#include <Development/EntityRegistrar.h>
+
+struct CameraTransform {
+	glm::vec3 position;
+	glm::vec3 rotation;
+};
+
 
 struct EntitySceneEvent {
 	bool MouseDown = false;
@@ -30,9 +37,22 @@ enum EntityEditingMode {
 	ROTATE = 2
 };
 
+enum GizmoMode {
+	ObjectMode = 0,
+	ColliderMode = 1
+};
+
+enum EditorCameraType {
+	TWO_AXIS_MOVE_CAMERA,
+	THREE_AXIS_MOVE_CAMERA
+};
 
 struct EditorLayer {
 
+	// editorcamera type
+	static EditorCameraType s_EditorCameraType;
+	static float EditorCameraSpeed;
+	static CameraTransform s_CameraTransform;
 
 	// for color input
 	std::vector<std::string> colorvaluesstring = { "R", "G", "B", "A" };
@@ -48,36 +68,42 @@ struct EditorLayer {
 
 	static bool was_mousepressed;
 
-	static bool record_chain_collider_vertices;
-
 	static bool mouse_on_window;
 
 	static SubTexture particlegeneratorsubtexture;
 
 	// selected entity
 	// for show properties in propertieswindow
-	static Entity selectedentity;
+	static std::shared_ptr<Entity> selectedentity;
 
 	static SubTexture* selectedsubtexture;
 
 	static bool camera_locked;
 
+	static GizmoMode s_GizmoMode;
+
 	static unsigned int s_EntityEditingMode;
 
 	static bool showcolliders;
 
+
 	Console test_console;
+
+	EntityRegistrar m_EntityRegistrar;
 
 
 	// framebuffer to store entity color so it can be used for mouse picking
 	FrameBuffer m_entitybuffer;
 
-	Shader* m_entitycolorshader;
+	std::shared_ptr<Shader> m_entitycolorshader;
 
-	Texture* m_colorbuffer;
-	Texture* m_depthbuffer;
+	std::unique_ptr<Texture> m_colorbuffer;
+	std::unique_ptr<Texture> m_depthbuffer;
 
 	EntitySceneEvent m_EntitySceneEvent;
+
+
+	std::unordered_map<std::string, SubTexture> EditorLayerIcons;
 
 	// for show windows some part
 
@@ -117,7 +143,12 @@ struct EditorLayer {
 
 	windowdata texturewindowdata = windowdata(0, 0, 800, { 0.0f, .43f, .57f, 1.0f }, { .35f, .48f, .55f, 1.0f });
 
+	windowdata entityregistrarwindowdata = windowdata(0, 0, 400, { 0.87f, .70f, 0.23, 1.0f }, { 0.88f, 0.75f, 0.38f, 1.0f });
+
+	windowdata skyboxwindowdata = windowdata(0, 0, 600, { 0.6f, 0.0f, 0.24f, 1.0f }, { 1.0f, 0.0f, 0.4f, 1.0f });
+
 	EditorLayer();
+	~EditorLayer();
 
 	bool OnEvent(Event& e);
 
@@ -129,4 +160,8 @@ struct EditorLayer {
 
 	void CopyEntity();
 	void PasteEntity();
+
+	void imguizmos();
+
+	void RenderEntityHierarchyTree(std::shared_ptr<Entity> entity, unsigned int offset);
 };

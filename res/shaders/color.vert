@@ -7,14 +7,13 @@ layout (location = 3) in vec2 atexcoords;
 
 uniform mat4 projectionview;
 
-uniform float w;
 
 out float texindex;
 out vec4 color;
 out vec2 texcoords;
 
 void main() {
-    gl_Position = projectionview * vec4(apos, w);
+    gl_Position = projectionview * vec4(apos, 1.0);
     color = acolor;
     texcoords = atexcoords;
     texindex = atexindex;

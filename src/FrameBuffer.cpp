@@ -9,6 +9,21 @@ FrameBuffer::FrameBuffer() {
 
 void FrameBuffer::Bind() {
 	glBindFramebuffer(GL_FRAMEBUFFER, ID);
+	if (!colorbuffer) {
+		glReadBuffer(GL_NONE);
+		glDrawBuffer(GL_NONE);
+	}
+
+	else {
+		unsigned int m = m_Indexes.size();
+		if (m > 0) {
+			unsigned int array[10];
+			for (unsigned int i = 0; i < m; i++) {
+				array[i] = GL_COLOR_ATTACHMENT0 + i;
+			}
+			glDrawBuffers(m, array);
+		}
+	}
 }
 
 void FrameBuffer::Unbind() {
@@ -30,10 +45,19 @@ void FrameBuffer::CheckError() {
 
 void FrameBuffer::AddColorAttachment(unsigned int n, const Texture& texture) {
 	Bind();
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + n, GL_TEXTURE_2D, texture.ID, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + n, texture.ID, 0);
+	colorbuffer = true;
+	m_Textures.push_back((Texture*)&texture);
+	m_Indexes.push_back(n);
+	CheckError();
 }
 
-void FrameBuffer::AddDepthAttachment(const Texture& texture) {
+void FrameBuffer::AddDepthAttachment(const Texture& texture, int format) {
 	Bind();
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture.ID, 0);
+
+	if (texture.m_TextureType == SAMPLER2D)
+		glFramebufferTexture(GL_FRAMEBUFFER, format, texture.ID, 0);
+	else if (texture.m_TextureType == SAMPLERCUBE)
+		glFramebufferTexture(GL_FRAMEBUFFER, format, texture.ID, 0);
+	CheckError();
 }

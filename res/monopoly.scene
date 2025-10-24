@@ -1,0 +1,953 @@
+Scene: Undefined
+texture3:
+  path: res/spritesheet.png
+texture4:
+  path: res/updated_site.png
+texture5:
+  path: res/dice.png
+texture6:
+  path: res/components.png
+texture15:
+  path: res/icons.png
+Entities:
+  - Entity: 51
+    NameComponent:
+      name: RollButton
+      active: true
+    TransformComponent:
+      position: [0, -1.10999036, 0.200000003]
+      rotation: [0, 0, 0]
+      scale: [4, 1, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 6
+        coords1: [0, 1]
+        coords2: [0.25, 0.9375]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: RollButton
+  - Entity: 50
+    NameComponent:
+      name: dice1
+      active: true
+    TransformComponent:
+      position: [-0.877901018, 0, 0.100000001]
+      rotation: [0, 0, 0]
+      scale: [0.699999988, 0.699999988, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 5
+        coords1: [0, 1]
+        coords2: [0.166666672, 0]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: Dice
+  - Entity: 49
+    NameComponent:
+      name: dice2
+      active: true
+    TransformComponent:
+      position: [0.958627284, 0, 0.100000001]
+      rotation: [0, 0, 0]
+      scale: [0.699999988, 0.699999988, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 5
+        coords1: [0, 1]
+        coords2: [0.166666672, 0]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: Dice
+  - Entity: 48
+    NameComponent:
+      name: Railways
+      active: true
+    TransformComponent:
+      position: [4.5408659, 3.56809998, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999990046]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.781199992, 1]
+        coords2: [0.976499975, 0.9023]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 0
+  - Entity: 47
+    NameComponent:
+      name: greyline3
+      active: true
+    TransformComponent:
+      position: [1.19273472, 3.19677162, -2]
+      rotation: [0, 0, 90]
+      scale: [2.55762649, 14.3488626, 0.999922812]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [0.800000012, 0.800000012, 0.800000012, 1]
+      transparent: false
+  - Entity: 46
+    NameComponent:
+      name: blackbg
+      active: true
+    TransformComponent:
+      position: [-6.40565014, 3.55196762, -0.5]
+      rotation: [0, 0, 0]
+      scale: [2, 2, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [0, 0, 0, 1]
+      transparent: false
+  - Entity: 45
+    NameComponent:
+      name: AMD.Jn
+      active: true
+    TransformComponent:
+      position: [0.403630137, -3.6164999, 0.100000001]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999958336]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.390599996, 0.50999999]
+        coords2: [0.585900009, 0.414999992]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+  - Entity: 44
+    NameComponent:
+      name: camera
+      active: true
+    TransformComponent:
+      position: [1, 0, 10]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    CameraComponent:
+      min_x: 0
+      max_x: 0
+      min_y: 0
+      max_y: 0
+      camerao:
+        near: -20
+        far: 20
+        size: 10
+      camerap:
+        angle: 45
+        near: 0.100000001
+        far: 100
+      cameratype: 0
+      primary: true
+  - Entity: 43
+    NameComponent:
+      name: ROADWAYS
+      active: true
+    TransformComponent:
+      position: [-6.40159988, 1.00908232, 0]
+      rotation: [0, 0, 0]
+      scale: [2, 1, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.195299998, 1]
+        coords2: [0.390599996, 0.9023]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 0
+  - Entity: 42
+    NameComponent:
+      name: INDIA
+      active: true
+    TransformComponent:
+      position: [-6.40159988, -0.0242183805, 0]
+      rotation: [0, 0, 0]
+      scale: [2, 1, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.585900009, 1]
+        coords2: [0.781199992, 0.9023]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 4
+  - Entity: 41
+    NameComponent:
+      name: ITALY
+      active: true
+    TransformComponent:
+      position: [6.11499977, 2.07870865, 0]
+      rotation: [0, 0, 0]
+      scale: [2, 1, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.781199992, 0.707099974]
+        coords2: [0.976499975, 0.609499991]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 2
+  - Entity: 40
+    NameComponent:
+      name: SAUDI ARABIA
+      active: true
+    TransformComponent:
+      position: [-6.40159988, -1.05751729, 0]
+      rotation: [0, 0, 0]
+      scale: [2, 1, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.390599996, 1]
+        coords2: [0.585900009, 0.9023]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 1
+  - Entity: 39
+    NameComponent:
+      name: whiteline1
+      active: true
+    TransformComponent:
+      position: [-7.72552919, 0.0716445446, -1]
+      rotation: [0, 0, 0]
+      scale: [3.18437123, 10.1181879, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [1, 1, 1, 1]
+      transparent: false
+  - Entity: 38
+    NameComponent:
+      name: greyline2
+      active: true
+    TransformComponent:
+      position: [1.19273472, -2.62462115, -2]
+      rotation: [0, 0, 90]
+      scale: [1.36187482, 13.7505779, 0.999959648]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [0.800000012, 0.800000012, 0.800000012, 1]
+      transparent: false
+  - Entity: 37
+    NameComponent:
+      name: start
+      active: true
+    TransformComponent:
+      position: [6.07971525, -3.62058544, 0]
+      rotation: [0, 0, 0]
+      scale: [1.98225689, 1.95886707, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.976499975, 0.414099991]
+        coords2: [0.781199992, 0.218799993]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+  - Entity: 36
+    NameComponent:
+      name: whiteline3
+      active: true
+    TransformComponent:
+      position: [0.871847153, 4.12815285, -1]
+      rotation: [0, 0, 0]
+      scale: [14.893137, 1.81609607, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [1, 1, 1, 1]
+      transparent: false
+  - Entity: 35
+    NameComponent:
+      name: AUSTRALIA
+      active: true
+    TransformComponent:
+      position: [-1.76387382, 3.56809998, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.99985826]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.390599996, 0.609399974]
+        coords2: [0.585900009, 0.511799991]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 3
+  - Entity: 34
+    NameComponent:
+      name: greyline4
+      active: true
+    TransformComponent:
+      position: [5.13723516, 0.581231475, -2]
+      rotation: [0, 0, 0]
+      scale: [1.38297927, 7.83363533, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [0.800000012, 0.800000012, 0.800000012, 1]
+      transparent: false
+  - Entity: 33
+    NameComponent:
+      name: CST.Jn
+      active: true
+    TransformComponent:
+      position: [6.11499977, 1.03935349, 0.100000001]
+      rotation: [0, 0, 0]
+      scale: [2, 1, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.390599996, 0.50999999]
+        coords2: [0.585900009, 0.414999992]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+  - Entity: 32
+    NameComponent:
+      name: USA
+      active: true
+    TransformComponent:
+      position: [-3.82744598, -3.6164999, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999922395]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.195299998, 0.902999997]
+        coords2: [0.390599996, 0.804700017]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 3
+  - Entity: 31
+    NameComponent:
+      name: TAX
+      active: true
+    TransformComponent:
+      position: [-2.77497911, -3.6164999, 0.100000001]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999916852]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.781199992, 0.50999999]
+        coords2: [0.976499975, 0.414999992]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+  - Entity: 30
+    NameComponent:
+      name: CHINA
+      active: true
+    TransformComponent:
+      position: [-1.7386471, -3.6164999, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.9998914]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.585900009, 0.902999997]
+        coords2: [0.781199992, 0.804700017]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 4
+  - Entity: 29
+    NameComponent:
+      name: Waterways
+      active: true
+    TransformComponent:
+      position: [-0.685165763, -3.6164999, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999882221]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.781199992, 0.902999997]
+        coords2: [0.976499975, 0.804700017]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 0
+  - Entity: 28
+    NameComponent:
+      name: ENGLAND
+      active: true
+    TransformComponent:
+      position: [0.337033689, 3.56809998, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999803126]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0, 0.804700017]
+        coords2: [0.195299998, 0.707099974]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 2
+  - Entity: 27
+    NameComponent:
+      name: AIRWAYS
+      active: true
+    TransformComponent:
+      position: [1.4308784, -3.6164999, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999828279]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.195299998, 0.804700017]
+        coords2: [0.390599996, 0.707099974]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 0
+  - Entity: 26
+    NameComponent:
+      name: IRAQ
+      active: true
+    TransformComponent:
+      position: [2.43390465, 3.56848836, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999781489]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.390599996, 0.804700017]
+        coords2: [0.585900009, 0.707099974]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 1
+  - Entity: 25
+    NameComponent:
+      name: SATELITE
+      active: true
+    TransformComponent:
+      position: [3.52875948, -3.6164999, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999807775]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.585900009, 0.804700017]
+        coords2: [0.781199992, 0.707099974]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 0
+  - Entity: 24
+    NameComponent:
+      name: bank_robery
+      active: true
+    TransformComponent:
+      position: [-6.40262413, 3.55802059, 0]
+      rotation: [0, 0, 0]
+      scale: [1.79999995, 1.79999995, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0, 0.414099991]
+        coords2: [0.195299998, 0.218799993]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+  - Entity: 23
+    NameComponent:
+      name: whiteline2
+      active: true
+    TransformComponent:
+      position: [0.871847153, -4.1079731, -1]
+      rotation: [0, 0, 0]
+      scale: [14.893137, 1.81609607, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [1, 1, 1, 1]
+      transparent: false
+  - Entity: 22
+    NameComponent:
+      name: jail
+      active: true
+    TransformComponent:
+      position: [6.08980608, 3.62462139, 0]
+      rotation: [0, 0, 0]
+      scale: [2, 2, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.585900009, 0.414099991]
+        coords2: [0.781199992, 0.218799993]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+  - Entity: 21
+    NameComponent:
+      name: GERMANY
+      active: true
+    TransformComponent:
+      position: [3.48133111, 3.56840372, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999979019]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0, 0.707099974]
+        coords2: [0.195299998, 0.609499991]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 2
+  - Entity: 20
+    NameComponent:
+      name: IRAN
+      active: true
+    TransformComponent:
+      position: [6.11499977, -1.05953538, 0]
+      rotation: [0, 0, 0]
+      scale: [2, 1, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.195299998, 0.707099974]
+        coords2: [0.390599996, 0.609499991]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 1
+  - Entity: 19
+    NameComponent:
+      name: bankimage
+      active: true
+    TransformComponent:
+      position: [0, -0.030272007, 0]
+      rotation: [0, 0, 0]
+      scale: [3.88000011, 3.88324857, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.195299998, 0.414099991]
+        coords2: [0.390599996, 0.218799993]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+  - Entity: 18
+    NameComponent:
+      name: HONGKONG
+      active: true
+    TransformComponent:
+      position: [6.11499977, -0.0100899935, 0]
+      rotation: [0, 0, 0]
+      scale: [2, 1, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.585900009, 0.707099974]
+        coords2: [0.781199992, 0.609499991]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 4
+  - Entity: 17
+    NameComponent:
+      name: jail
+      active: true
+    TransformComponent:
+      position: [-6.42280674, -3.66094828, 0]
+      rotation: [0, 0, 0]
+      scale: [2, 2, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.390599996, 0.414099991]
+        coords2: [0.585900009, 0.218799993]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+  - Entity: 16
+    NameComponent:
+      name: whiteline4
+      active: true
+    TransformComponent:
+      position: [7.41069317, 0.0716445446, -1]
+      rotation: [0, 0, 0]
+      scale: [3.18437123, 10.1181879, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [1, 1, 1, 1]
+      transparent: false
+  - Entity: 15
+    NameComponent:
+      name: greyline1
+      active: true
+    TransformComponent:
+      position: [-5.45812273, 0.581231475, -2]
+      rotation: [0, 0, 0]
+      scale: [1.38297927, 7.83363533, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [0.800000012, 0.800000012, 0.800000012, 1]
+      transparent: false
+  - Entity: 14
+    NameComponent:
+      name: PETROLEUM
+      active: true
+    TransformComponent:
+      position: [-4.8718462, -3.6164999, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999933064]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0, 0.902999997]
+        coords2: [0.195299998, 0.804700017]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+  - Entity: 13
+    NameComponent:
+      name: SINGAPORE
+      active: true
+    TransformComponent:
+      position: [-4.8718462, 3.56809998, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999903679]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0, 0.609399974]
+        coords2: [0.195299998, 0.511799991]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 4
+  - Entity: 12
+    NameComponent:
+      name: MEXICO
+      active: true
+    TransformComponent:
+      position: [-0.704338133, 3.56809998, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999857962]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.585900009, 0.609399974]
+        coords2: [0.781199992, 0.511799991]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 3
+  - Entity: 11
+    NameComponent:
+      name: DELHI.Jn
+      active: true
+    TransformComponent:
+      position: [-6.40159988, 2.02825332, 0.100000001]
+      rotation: [0, 0, 0]
+      scale: [2, 1, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.390599996, 0.50999999]
+        coords2: [0.585900009, 0.414999992]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+  - Entity: 10
+    NameComponent:
+      name: CHANCE
+      active: true
+    TransformComponent:
+      position: [2.49444938, -3.6164999, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999784708]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0, 0.511799991]
+        coords2: [0.195299998, 0.414099991]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+  - Entity: 9
+    NameComponent:
+      name: BRAZIL
+      active: true
+    TransformComponent:
+      position: [-3.84258223, 3.56809998, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999867618]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.195299998, 0.609399974]
+        coords2: [0.390599996, 0.511799991]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+    CardComponent:
+      CardType: 3
+  - Entity: 8
+    NameComponent:
+      name: CHANCE
+      active: true
+    TransformComponent:
+      position: [-2.79313755, 3.56809998, 0]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999849796]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0, 0.511799991]
+        coords2: [0.195299998, 0.414099991]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+  - Entity: 7
+    NameComponent:
+      name: CHANCE
+      active: true
+    TransformComponent:
+      position: [6.11499977, -2.10292768, 0]
+      rotation: [0, 0, 0]
+      scale: [2, 1, 0.999825358]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0, 0.511799991]
+        coords2: [0.195299998, 0.414099991]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+  - Entity: 6
+    NameComponent:
+      name: CHANCE
+      active: true
+    TransformComponent:
+      position: [-6.40159988, -2.12310934, 0]
+      rotation: [0, 0, 0]
+      scale: [2, 1, 0.999832451]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0, 0.511799991]
+        coords2: [0.195299998, 0.414099991]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+  - Entity: 5
+    NameComponent:
+      name: KOL.Jn
+      active: true
+    TransformComponent:
+      position: [1.40262079, 3.56809998, 0.100000001]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999978483]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.390599996, 0.50999999]
+        coords2: [0.585900009, 0.414999992]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+  - Entity: 4
+    NameComponent:
+      name: POT FUND
+      active: true
+    TransformComponent:
+      position: [4.55095577, -3.6164999, 0.100000001]
+      rotation: [0, 0, 90]
+      scale: [2, 1, 0.999957323]
+    SpriteRendererComponent:
+      subtexture:
+        index: 4
+        coords1: [0.585900009, 0.50999999]
+        coords2: [0.781199992, 0.414999992]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: cardtest
+  - Entity: 3
+    NameComponent:
+      name: cardbackground
+      active: true
+    TransformComponent:
+      position: [0, 0, 0.300000012]
+      rotation: [0, 0, 0]
+      scale: [7.51596928, 4.15804482, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [1, 1, 0, 1]
+      transparent: false
+  - Entity: 2
+    NameComponent:
+      name: cardname
+      active: true
+    TransformComponent:
+      position: [0, 1.53380466, 0.400000006]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    FontRendererComponent:
+      text: USA
+      opacity: 1
+      pixelsize: 512
+  - Entity: 1
+    NameComponent:
+      name: cardborder
+      active: true
+    TransformComponent:
+      position: [0, 0, 0.289999992]
+      rotation: [0, 0, 0]
+      scale: [7.65297127, 4.30912638, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 0
+        coords1: [0, 0]
+        coords2: [0, 0]
+      type: false
+      color: [0.100000001, 0.200000003, 0.5, 1]
+      transparent: false
+  - Entity: 0
+    NameComponent:
+      name: CardCloseButton
+      active: true
+    TransformComponent:
+      position: [3.44096875, 1.80625582, 0.400000006]
+      rotation: [0, 0, 0]
+      scale: [0.300000012, 0.300000012, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 6
+        coords1: [0, 0.9375]
+        coords2: [0.0625, 0.875]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: CardCloseButton

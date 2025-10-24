@@ -19,8 +19,8 @@ struct Vertex {
 struct Renderer2DState {
 
 	unsigned int indicespointer = 0;
-	struct Shader* shadercontext;
-	Texture* white_texture;
+	std::shared_ptr<Shader> shadercontext;
+	std::shared_ptr<Texture> white_texture;
 
 	Vertex* bufferbase;
 	Vertex* bufferptr;
@@ -48,7 +48,7 @@ struct Renderer2D {
 	static void Init();
 
 
-	static void UseShader(Shader* a_shader);
+	static void UseShader(std::shared_ptr<Shader> a_shader);
 
 	// this is used for render new scene
 	// set projectionview matrix value in shader
@@ -65,9 +65,9 @@ struct Renderer2D {
 
 	// texture array
 
-	static Texture* textures[];
+	static std::shared_ptr<Texture> textures[];
 
-	static void SetTexture(Texture* textureid, unsigned int id);
+	static void SetTexture(std::shared_ptr<Texture> textureid, unsigned int id);
 
 
 	static void DrawLine(const glm::vec2& p1, const glm::vec2& p2, const glm::vec4& color);

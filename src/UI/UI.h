@@ -20,6 +20,11 @@ struct inputid {
 	std::string text;
 };
 
+enum MouseButtonClick {
+	RIGHT_CLICK, 
+	LEFT_CLICK
+};
+
 
 struct ui {
 
@@ -48,7 +53,7 @@ struct ui {
 	// this vector contain all windowdatas it is used for handling events like moving uiwindows and hiding uiwindows
 	static std::vector<windowdata*> windowdatas;
 
-	static FontRenderer* fr;
+	static std::shared_ptr<FontRenderer> fr;
 	// this stack for store windowdata so it can be used for rendering other window content
 	static std::stack<windowdata*> windowstack;
 
@@ -79,7 +84,7 @@ struct ui {
 	static void updateuiparameters(windowdata* data, int& inputwidth, int& last_content_offsetx, int& last_content_offsety, float& width, float& height);
 
 	// button
-	static bool Button(const std::string& text);
+	static bool Button(const std::string& text, MouseButtonClick c = MouseButtonClick::LEFT_CLICK);
 
 	// input box for text input
 	static void InputBox(const std::string& id, std::string& text);
@@ -105,7 +110,9 @@ struct ui {
 
 	static void OptionSelector(std::vector<std::string> options, unsigned int& selectedoptionindex);
 
-	static bool DropDownButton(const std::string& text, bool value);
+	static bool DropDownButton(const std::string& text, bool &value, unsigned int uioffset = 0);
 
 	static void Image(SubTexture* image);
+
+	static bool ImageButton(glm::ivec2 windowpos, glm::ivec2 size, SubTexture& image, float opacity = 1.0f);
 };

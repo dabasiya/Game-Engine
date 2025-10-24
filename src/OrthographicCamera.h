@@ -7,7 +7,7 @@
 
 struct OrthographicCamera {
 
-	float near = -20.0f;
+	float near = 0.0f;
 	float far = 20.0f;
 
 	float orthographicsize = 0.0f;

@@ -6,11 +6,11 @@
 #include <iostream>
 
 
-struct Entity {
+struct Entity : public std::enable_shared_from_this<Entity> {
 
     entt::entity id;
 
-    Scene* m_scene;
+    std::shared_ptr<Scene> m_scene;
 
     // entity functions
 
@@ -23,6 +23,8 @@ struct Entity {
 
     template<typename T>
     bool HasComponent() {
+        if (!m_scene)
+            return false;
         return m_scene->m_registry.any_of<T>(id);
     }
 
@@ -38,5 +40,6 @@ struct Entity {
         m_scene->m_registry.remove<T>(id);
     }
 
-  
+    std::shared_ptr<Entity> CreateChildEntity(const std::string& name);
+
 };

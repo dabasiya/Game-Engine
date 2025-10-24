@@ -137,10 +137,13 @@ void Window::MousePosEventFn(GLFWwindow* window, double x, double y) {
 	Window_Mousey = y;
 
 
-	Mousex = (x / Width) * OrthographicSize * Ratio;
-	Mousex -= (OrthographicSize * Ratio / 2);
-	Mousey = (y / Height) * OrthographicSize;
-	Mousey = -(Mousey - (OrthographicSize / 2));
+
+	Mousex = (2.0f * x * Ratio / Width) - Ratio;
+	Mousex *= OrthographicSize/2;
+	Mousey = 1.0f - (2.0f * y / Height);
+	Mousey *= OrthographicSize/2;
+
+
 
 	MouseMovedEvent e((float)x, (float)y);
 	EventCallBackFunction(e);

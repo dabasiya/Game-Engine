@@ -13,33 +13,54 @@
 
 #include "MessageBatch.h"
 
+#include <Scene/PhysicsSystem.h>
+
+#include <Model.h>
+
 
 struct Entity;
 
-struct Scene {
+struct Scene : public std::enable_shared_from_this<Scene> {
 
 	static MainSetting s_MainSetting;
 
 
 	static MessageBatch s_msgbatch;
+
+	static glm::vec3 cameraorientation;
 	// this is for rendering sequence
-	std::vector<Entity> entities;
+	std::vector<std::shared_ptr<Entity>> entities;
 
-
+	Model* cubemodel;
 
 	void reorder_rendering_sequence();
 
+	// 2d and 3d physics world
 	b2World* physicsworld;
-	Entity CreateEntity(const std::string& name = "Entity");
-	void DestroyEntity(Entity a_entity);
+
+	PhysicsSystem* m_PhysicsSystem;
 
 
+	std::shared_ptr<Entity> CreateEntity(const std::string& name = "Entity");
+	void DestroyEntity(std::shared_ptr<Entity> a_entity);
+
+	void SetChildOf(std::shared_ptr<Entity> parent, std::shared_ptr<Entity> child);
+
+	bool PrimaryCameraExist();
+
+	std::shared_ptr<Entity> GetPrimaryCameraEntity();
+
+	
 	void OnRuntimeStart();
 	void OnRuntimeStop();
 
 	bool OnEvent(Event& e);
 
+	void Render3DModels(std::shared_ptr<Shader>& shader, glm::mat4 viewproj);
+
 	void Update(float ts);
+
+	void UpdateGlobalTransform(std::shared_ptr<Entity> entity, glm::mat4 transform);
 
 	entt::registry m_registry;
 };

@@ -1,3 +1,5 @@
+
+
 #include "FontRenderer.h"
 
 #include <iostream>
@@ -41,9 +43,7 @@ FontRenderer::FontRenderer(unsigned int fontsize, const std::string& path, unsig
 	height = fontsize;
 
 
-
-	fonttexture = new Texture(width, height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
-
+	fonttexture = std::make_shared<Texture>(width, height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
 
 	for (auto& ch : characters) {
 
@@ -196,5 +196,12 @@ void FontRenderer::PrintString(std::string text, int x, int y, int scale, const 
 
 
 void FontRenderer::Release() {
-	delete fonttexture;
+	fonttexture.reset();
 }
+
+FontRenderer::~FontRenderer() {
+	Release();
+}
+
+
+

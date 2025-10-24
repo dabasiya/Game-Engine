@@ -1,0 +1,67 @@
+Scene: Undefined
+texture3:
+  path: res/spritesheet.png
+texture15:
+  path: res/icons.png
+Entities:
+  - Entity: 2
+    NameComponent:
+      name: Camera
+      active: true
+    TransformComponent:
+      position: [-0.326980591, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    CameraComponent:
+      min_x: 0
+      max_x: 0
+      min_y: 0
+      max_y: 0
+      camerao:
+        near: 0
+        far: 20
+        size: 10
+      camerap:
+        angle: 45
+        near: 0.100000001
+        far: 100
+      cameratype: 0
+      primary: true
+  - Entity: 1
+    NameComponent:
+      name: Player
+      active: true
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [0.5, 1, 1]
+    SpriteRendererComponent:
+      subtexture:
+        index: 3
+        coords1: [0, 1]
+        coords2: [0.03125, 0.9375]
+      type: true
+      color: [1, 1, 1, 1]
+      transparent: false
+    ScriptComponent:
+      name: player
+    AnimationGroupComponent:
+      0:
+        key: forward
+        path: tools/forward_walk.animation
+      1:
+        key: back
+        path: tools/back_walk.animation
+      2:
+        key: right
+        path: tools/right_walk.animation
+  - Entity: 0
+    NameComponent:
+      name: Map
+      active: true
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    ScriptComponent:
+      name: Map

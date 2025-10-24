@@ -6,7 +6,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-FontRenderer* ui::fr;
+std::shared_ptr<FontRenderer> ui::fr;
 
 std::stack<windowdata*> ui::windowstack;
 
@@ -324,7 +324,7 @@ void ui::updateuiparameters(windowdata* data, int& inputwidth, int& last_content
 	height = (float)elementsize * heighto;
 }
 
-bool ui::Button(const std::string& text) {
+bool ui::Button(const std::string& text, MouseButtonClick c) {
 	windowdata* data = windowstack.top();
 
 	if (data->visible) {
@@ -346,9 +346,12 @@ bool ui::Button(const std::string& text) {
 
 		if (mousehover(data->x + last_content_offsetx + 5, data->y + last_content_offsety + 5, inputwidth, 30) && data->y + last_content_offsety + 5 > 0 && data->y + last_content_offsety + 5 < 1000) {
 			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, data->tab_color, { 0.5f, -0.5f });
-			if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_1) && !was_mouse_pressed) {
+			if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_LEFT) && !was_mouse_pressed && c == MouseButtonClick::LEFT_CLICK) {
 				activeinputbox.id = "";
 				was_mouse_pressed = false;
+				return true;
+			}
+			else if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_RIGHT) && !was_mouse_pressed) {
 				return true;
 			}
 		}
@@ -668,7 +671,7 @@ void ui::Image(SubTexture* image) {
 		unsigned int index = image->index;
 
 
-		Texture* s_texture = Renderer2D::textures[index];
+		auto s_texture = Renderer2D::textures[index];
 
 		if (s_texture) {
 			float width = 0.0f, height = 0.0f;
@@ -820,7 +823,7 @@ void ui::UInt16InputBox(const std::string& id, uint16_t& value, int onclickvalue
 }
 
 
-bool ui::DropDownButton(const std::string& text, bool value) {
+bool ui::DropDownButton(const std::string& text, bool& value, unsigned int uioffset) {
 	windowdata* data = windowstack.top();
 
 	if (data->visible) {
@@ -836,7 +839,7 @@ bool ui::DropDownButton(const std::string& text, bool value) {
 
 		updateuiparameters(data, inputwidth, last_content_offsetx, last_content_offsety, width, height);
 
-		float xpos = (float)(data->x + last_content_offsetx + 5) * widthor;
+		float xpos = (float)(data->x + last_content_offsetx + 5 + uioffset) * widthor;
 		xpos -= hor;
 		float ypos = (float)(data->y + last_content_offsety + 5) * heighto;
 		ypos = -(ypos - ho);
@@ -844,11 +847,51 @@ bool ui::DropDownButton(const std::string& text, bool value) {
 		float buttonwidth = 15.0f * widthor;
 		float buttonheight = 15.0f * heighto;
 
-		Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, data->panel_color + glm::vec4(.1f, .1f, .1f, .0f), { .5f, -.5f });
 
-		Renderer2D::DrawRotatedTriangle({ xpos + height / 1.7f, ypos - height / 2, data->z }, { buttonwidth, buttonheight }, -90.0f, data->tab_color);
+		if (mousehover(data->x + last_content_offsetx + 5 + uioffset, data->y + last_content_offsety + 5, 30, 30)) {
+			if(glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_LEFT) && !was_mouse_pressed)
+				value = !value;
+		}
+	
+		if (mousehover(data->x + last_content_offsetx + 35 + uioffset, data->y + last_content_offsety + 5, inputwidth - uioffset, 30)) {
+			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, data->panel_color - glm::vec4(.1f, .1f, .1f, .0f), { .5f, -.5f });
+		}
+		else {
+			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, data->panel_color, { .5f, -.5f });
+		}
 
+		if (value)
+			Renderer2D::DrawRotatedTriangle({ xpos + height / 1.7f, ypos - height / 2, data->z }, { buttonwidth, buttonheight }, -180.0f, data->tab_color);
+		else
+			Renderer2D::DrawRotatedTriangle({ xpos + height / 1.7f, ypos - height / 2, data->z }, { buttonwidth, buttonheight }, -90.0f, data->tab_color);
 		fr->PrintStringui(text, xpos + width / 2, ypos - height / 2, data->z, (float)fontsize);
+
+		bool onclicked = false;
+		if (mousehover(data->x + last_content_offsetx + 35 + uioffset, data->y + last_content_offsety + 5, inputwidth, 30) && glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_LEFT) && !was_mouse_pressed)
+			onclicked = true;
+		return onclicked;
 	}
+	return false;
+}
+
+
+bool ui::ImageButton(glm::ivec2 windowpos, glm::ivec2 size, SubTexture& image, float opacity) {
+
+	float xpos = (1.0f / Window::Width) * Window::OrthographicSize * Window::Ratio * windowpos.x;
+	xpos -= ((Window::OrthographicSize * Window::Ratio) / 2.0f);
+
+	float ypos = (1.0f / Window::Height) * Window::OrthographicSize * windowpos.y;
+	ypos -= (Window::OrthographicSize / 2.0f);
+	ypos = 0.0f - ypos;
+
+	float width = (1.0f / Window::Width) * Window::OrthographicSize * Window::Ratio * size.x;
+	float height = (1.0f / Window::Height) * Window::OrthographicSize * size.y;
+
+	Renderer2D::DrawQuad({xpos, ypos}, glm::vec2(width, height), image, glm::vec4(1.0f, 1.0f, 1.0f, opacity), glm::vec2(0.5f, -0.5f));
+
+	if (mousehover(windowpos.x, windowpos.y, size.x, size.y) && !was_mouse_pressed && glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_LEFT)) {
+		return true;
+	}
+
 	return false;
 }

@@ -6,7 +6,9 @@
 #include <iostream>
 #include <string>
 
-Texture* Renderer2D::textures[16];
+#include <UI/UI.h>
+
+std::shared_ptr<Texture> Renderer2D::textures[16];
 
 // declare static variables of Renderer2D structure
 
@@ -52,7 +54,7 @@ void Renderer2D::Init() {
 	triangleVertexposition[2] = { 0.0f, 0.5f, 0.0f, 1.0f };
 	triangleVertexposition[3] = { 0.5f, -0.5f, 0.0f, 1.0f };
 
-	state.white_texture = new Texture(1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+	state.white_texture = std::make_shared<Texture>(1, 1, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
 
 
 	unsigned int data = 0xffffffff;
@@ -143,7 +145,8 @@ void Renderer2D::Init() {
 void Renderer2D::BeginScene(const glm::mat4& cameraprojectionview) {
 
 	state.shadercontext->Bind();
-	state.white_texture->Bind(0);
+	textures[0] = state.white_texture;
+	textures[1] = ui::fr->fonttexture;
 	// set view and projection value
 	state.shadercontext->SetMat4("projectionview", cameraprojectionview);
 
@@ -165,12 +168,13 @@ void Renderer2D::EndScene() {
 
 
 // for change shader
-void Renderer2D::UseShader(Shader* a_shader) {
+void Renderer2D::UseShader(std::shared_ptr<Shader> a_shader) {
 	state.shadercontext = a_shader;
+	state.shadercontext->Bind();
 }
 
 
-void Renderer2D::SetTexture(Texture* textureid, unsigned int id) {
+void Renderer2D::SetTexture(std::shared_ptr<Texture> textureid, unsigned int id) {
 	textures[id] = textureid;
 }
 
@@ -178,8 +182,13 @@ void Renderer2D::SetTexture(Texture* textureid, unsigned int id) {
 void Renderer2D::Flush() {
 
 
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	unsigned int size = (unsigned int)((unsigned char*)state.bufferptr - (unsigned char*)state.bufferbase);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, size, memorybuffer);
+
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+
 
 	glDrawElements(GL_TRIANGLES, state.indicespointer, GL_UNSIGNED_INT, nullptr);
 
@@ -276,11 +285,10 @@ void Renderer2D::Release() {
 	// delete textures
 	for (uint32_t i = 2; i < 16; i++) {
 		if (textures[i]) {
-			delete textures[i];
+			textures[i].reset();
 		}
 	}
 	free(memorybuffer);
-	delete state.white_texture;
 }
 
 void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& scale, float angle, const glm::vec4& color, glm::vec2 ref) {

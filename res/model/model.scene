@@ -1,0 +1,112 @@
+Scene: Undefined
+texture13:
+  path: res/EditorLayerIcons.png
+texture15:
+  path: res/icons.png
+Entities:
+  - Entity: 5
+    NameComponent:
+      name: light
+      active: true
+    TransformComponent:
+      position: [-0.168537736, 0.119739875, 0]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+    LightComponent:
+      Type: 2
+      Angle: 0
+      Color: [1, 1, 1]
+      Direction: [-0.300000012, -1, 0]
+    ChildEntities:
+      []
+  - Entity: 4
+    NameComponent:
+      name: plane
+      active: true
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+    Model3DComponent:
+      filepath: res/plane.obj
+      shadername: 3d
+    PhysicsComponent:
+      Mass: 0
+      HalfExtent: [0.5, 0.5, 0.5]
+      ColliderType: 3
+      Restitution: 0
+      Friction: 1
+      Radius: 0.5
+    ChildEntities:
+      []
+  - Entity: 3
+    NameComponent:
+      name: camera
+      active: true
+    TransformComponent:
+      position: [0.355527163, 0.599416971, 0.676695049]
+      rotation: [-36.8961334, 36.9032593, 0]
+      scale: [1, 1, 1]
+    CameraComponent:
+      min_x: 0
+      max_x: 0
+      min_y: 0
+      max_y: 0
+      camerao:
+        near: 0
+        far: 20
+        size: 0
+      camerap:
+        angle: 45
+        near: 0.100000001
+        far: 100
+      cameratype: 1
+      primary: true
+    ChildEntities:
+      []
+  - Entity: 1
+    NameComponent:
+      name: vampire_rb
+      active: true
+    TransformComponent:
+      position: [-0.0104427794, 0.248835713, -0.000877999992]
+      rotation: [0, -0, 0]
+      scale: [0.999997675, 0.999998868, 0.999997735]
+    PhysicsComponent:
+      Mass: 1
+      HalfExtent: [0.0194834378, 0.0681210011, 0.0195746608]
+      ColliderType: 0
+      Restitution: 0
+      Friction: 1
+      Radius: 0.5
+    ChildEntities:
+      - Entity: 2
+        NameComponent:
+          name: vampire_model
+          active: true
+        TransformComponent:
+          position: [-0.0078958869, -0.0653464869, 0]
+          rotation: [0, -0, 0]
+          scale: [0.100000001, 0.100000001, 0.100000001]
+        Model3DComponent:
+          filepath: res/model/vampire.obj
+          shadername: 3d
+        ChildEntities:
+          []
+  - Entity: 0
+    NameComponent:
+      name: Entity
+      active: true
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+    PhysicsComponent:
+      Mass: 1
+      HalfExtent: [0.5, 0.5, 0.5]
+      ColliderType: 3
+      Restitution: 0
+      Friction: 1
+      Radius: 0.5
+    ChildEntities:
+      []
