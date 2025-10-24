@@ -14,6 +14,7 @@ add_executable(Game_Engine ${SOURCE} ${GLAD_SOURCE})
 
 target_include_directories(Game_Engine PRIVATE "./Dependencies/include/")
 target_include_directories(Game_Engine PRIVATE "./Dependencies/include/entt/")
+target_include_directories(Game Engine PRIVATE "./Dependencies/include/imgui/")
 target_include_directories(Game_Engine PRIVATE "./src/")
 
 add_library(freetype STATIC IMPORTED)
