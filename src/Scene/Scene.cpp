@@ -759,7 +759,6 @@ void Scene::Update(float ts) {
 
 				if (lc.lighttype == POINT_LIGHT) {
 					lc.m_Texture->Bind(16 + index);
-					std::cout << lc.m_Texture->m_TextureType << std::endl;
 					std::string name = std::string("cubeshadowmap[") + std::to_string(index) + std::string("]");
 					mshader->SetInt(name.c_str(), index);
 				}

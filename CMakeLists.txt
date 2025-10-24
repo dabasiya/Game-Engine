@@ -15,7 +15,41 @@ add_executable(Game_Engine ${SOURCE} ${GLAD_SOURCE})
 target_include_directories(Game_Engine PRIVATE "./Dependencies/include/")
 target_include_directories(Game_Engine PRIVATE "./Dependencies/include/entt/")
 target_include_directories(Game_Engine PRIVATE "./Dependencies/include/imgui/")
+target_include_directories(Game_Engine PRIVATE "./Dependencies/include/imgui/backends/")
+target_include_directories(Game_Engine PRIVATE "./Dependencies/include/imguizmo/")
 target_include_directories(Game_Engine PRIVATE "./src/")
+
+
+
+
+
+set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/include/imgui)
+
+add_library(imgui STATIC
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+    
+    # --- ADD YOUR BACKENDS HERE! ---
+    # You MUST include the .cpp files for your renderer and platform.
+    # This example uses GLFW and OpenGL3.
+    ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+)
+
+target_include_directories(imgui PRIVATE "./Dependencies/include/imgui/")
+target_include_directories(imgui PRIVATE "./Dependencies/include/")
+
+
+set(IMGUIZMO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/include/imguizmo)
+
+add_library(imguizmo STATIC
+    ${IMGUIZMO_DIR}/ImGuizmo.cpp
+)
+
+target_include_directories(imguizmo PRIVATE ${IMGUIZMO_DIR})
+target_include_directories(imguizmo PRIVATE ${IMGUI_DIR})
 
 add_library(freetype STATIC IMPORTED)
 
@@ -42,13 +76,13 @@ set_target_properties(fmod PROPERTIES IMPORTED_LOCATION "./Dependencies/lib/fmod
 
 set_target_properties(box2d PROPERTIES IMPORTED_LOCATION "./Dependencies/lib/box2d.lib")
 
-set_target_properties(yaml PROPERTIES IMPORTED_LOCATION "./Dependencies/lib/yamld.lib")
+set_target_properties(yaml PROPERTIES IMPORTED_LOCATION "./Dependencies/lib/yaml-cppd.lib")
 
 set_target_properties(freetype PROPERTIES IMPORTED_LOCATION "./Dependencies/lib/freetype.lib")
 
 set_target_properties(glfw PROPERTIES IMPORTED_LOCATION "./Dependencies/lib/glfw3.lib")
 
-set_target_properties(opengl PROPERTIES IMPORTED_LOCATION "./Dependencies/lib/opengl32.lib")
+set_target_properties(opengl PROPERTIES IMPORTED_LOCATION "opengl32.lib")
 
 set_target_properties(assimp PROPERTIES IMPORTED_LOCATION "./Dependencies/lib/assimp-vc143-mt.lib")
 
@@ -68,8 +102,8 @@ target_link_libraries(Game_Engine PRIVATE assimp)
 target_link_libraries(Game_Engine PRIVATE BulletDynamics)
 target_link_libraries(Game_Engine PRIVATE BulletCollision)
 target_link_libraries(Game_Engine PRIVATE LinearMath)
-
-
+target_link_libraries(Game_Engine PRIVATE imgui)
+target_link_libraries(Game_Engine PRIVATE imguizmo)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Game_Engine)
 
