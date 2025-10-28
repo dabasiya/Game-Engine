@@ -16,7 +16,9 @@
 
 #include <ParticleSystem.h>
 
-float farplane = 2.0f;
+float shadoworthosize = 40.0f;
+
+float farplane = 100.0f;
 // for create Entity
 // this function register Entity in entt registry and return Entity structure
 
@@ -40,6 +42,17 @@ glm::vec3 Scene::cameraorientation = glm::vec3(1.0f);
 
 
 #define AppScene Application::GetInstance().s_serializer.m_scene
+
+
+Scene::Scene() {
+	gvbo = VBO(sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	gvao = VAO();
+	gvao.LinkVBO(gvbo, 0, 3, 5 * sizeof(float), 0);
+	gvao.LinkVBO(gvbo, 1, 2, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+	gebo = EBO(sizeof(indices), indices);
+}
 
 std::shared_ptr<Entity> Scene::CreateEntity(const std::string& name) {
 	std::shared_ptr<Entity> e = std::make_shared<Entity>();
@@ -215,6 +228,13 @@ void Scene::OnRuntimeStart() {
 		pc.InitialPosition = tc.position;
 		pc.InitialRotation = PhysicsComponent::EulerToQuat(tc.rotation);
 
+		if (pc.OnlyPositive)
+		{
+			if (pc.ShapeType == PhysicsShapeType::Box)
+				pc.InitialPosition.y += pc.BoxHalfExtents.y;
+			else if (pc.ShapeType == PhysicsShapeType::Sphere)
+				pc.InitialPosition.y += pc.SphereRadius;
+		}
 		pc.initializeRuntimeBody(m_PhysicsSystem->getWorld());
 
 		glm::quat rot = PhysicsComponent::EulerToQuat(tc.rotation);
@@ -630,6 +650,7 @@ void Scene::Update(float ts) {
 
 		// draw shadowmaps
 		{
+
 			auto lights = m_registry.view<LightComponent, TransformComponent>();
 			for (auto e1 : lights) {
 				auto& lc = lights.get<LightComponent>(e1);
@@ -642,7 +663,7 @@ void Scene::Update(float ts) {
 
 				glEnable(GL_DEPTH_TEST);
 				glDepthMask(GL_TRUE);
-				glDepthFunc(GL_LESS);
+				glDepthFunc(GL_LEQUAL);
 
 				glm::vec3 position = tc.position;
 				glm::mat4 view = glm::lookAt(position, position + lc.direction, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -654,10 +675,8 @@ void Scene::Update(float ts) {
 					// do rendering
 
 					float w = (float)Window::Width / Window::Height;
-					w /= 2;
-					float h = 1.0f / 2;
 
-					glm::mat4 proj = glm::ortho(-w, w, -h, h, 0.1f, farplane);
+					glm::mat4 proj = glm::ortho(-shadoworthosize * w, shadoworthosize * w, -shadoworthosize, shadoworthosize, 0.1f, farplane);
 
 					glm::mat4 viewproj = proj * view;
 					Render3DModels(ashader, viewproj);
@@ -668,13 +687,15 @@ void Scene::Update(float ts) {
 					float w = (float)Window::Width / Window::Height;
 					float h = 1.0f;
 
-					glm::mat4 proj = glm::perspective(glm::radians(90.0f), w, 0.1f, farplane);
+					glm::mat4 proj = glm::perspective(glm::radians(lc.angle * 2.0f), 1.0f, 1.0f, farplane);
 
 					glm::mat4 viewproj = proj * view;
 					Render3DModels(ashader, viewproj);
 				}
 
 				else if (lc.lighttype == POINT_LIGHT) {
+					glViewport(0, 0, Window::Width, Window::Width);
+					glClear(GL_DEPTH_BUFFER_BIT);
 					glm::mat4 viewproj[6];
 
 					auto shader = ShaderManager::Get("cubeshadowmap");
@@ -682,19 +703,19 @@ void Scene::Update(float ts) {
 					float w = (float)Window::Width / Window::Height;
 					float h = 1.0f;
 
-					glm::mat4 proj = glm::perspective(glm::radians(90.0f), w, 0.1f, farplane);
+					glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, farplane);
 
-					viewproj[0] = proj * glm::lookAt(position, position + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-					viewproj[1] = proj * glm::lookAt(position, position + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-					viewproj[2] = proj * glm::lookAt(position, position + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
-					viewproj[3] = proj * glm::lookAt(position, position + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-					viewproj[4] = proj * glm::lookAt(position, position + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-					viewproj[5] = proj * glm::lookAt(position, position + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+					viewproj[0] = proj * glm::lookAt(position, position + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+					viewproj[1] = proj * glm::lookAt(position, position + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+					viewproj[2] = proj * glm::lookAt(position, position + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+					viewproj[3] = proj * glm::lookAt(position, position + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
+					viewproj[4] = proj * glm::lookAt(position, position + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+					viewproj[5] = proj * glm::lookAt(position, position + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
 					shader->Bind();
 					for (unsigned int i = 0; i < 6; i++) {
 
-						std::string varname = std::string("viewproj[") + std::to_string(i) + std::string("]");
+						std::string varname = std::string("viewproja[") + std::to_string(i) + std::string("]");
 						shader->SetMat4(varname.c_str(), viewproj[i]);
 					}
 
@@ -706,13 +727,12 @@ void Scene::Update(float ts) {
 			}
 		}
 
-
+		/*
 		// render 3d models 
 		{
-
+			glViewport(0, 0, Window::Width, Window::Height);
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glDepthFunc(GL_LEQUAL);
-
 
 			auto mshader = ShaderManager::Get("3d");
 			glm::mat4 viewproj = glm::mat4(1.0f);
@@ -760,17 +780,16 @@ void Scene::Update(float ts) {
 				if (lc.lighttype == POINT_LIGHT) {
 					lc.m_Texture->Bind(16 + index);
 					std::string name = std::string("cubeshadowmap[") + std::to_string(index) + std::string("]");
-					mshader->SetInt(name.c_str(), index);
+					mshader->SetInt(name.c_str(), 16 + index);
 				}
 
 
 				// set viewprojection matrix
 				if (lc.lighttype == DIRECTIONAL_LIGHT) {
 					float w = (float)Window::Width / Window::Height;
-					w /= 2;
-					float h = 1.0f / 2;
 
-					glm::mat4 proj = glm::ortho(-w, w, -h, h, 0.1f, farplane);
+					glm::mat4 proj = glm::ortho(-shadoworthosize * w, shadoworthosize * w, -shadoworthosize, shadoworthosize, 0.1f, farplane);
+
 
 					glm::mat4 view = glm::lookAt(tc.position, tc.position + lc.direction, glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -784,7 +803,7 @@ void Scene::Update(float ts) {
 					float w = (float)Window::Width / Window::Height;
 					float h = 1.0f;
 
-					glm::mat4 proj = glm::perspective(glm::radians(90.0f), w, 0.1f, farplane);
+					glm::mat4 proj = glm::perspective(glm::radians(lc.angle * 2.0f), 1.0f, 1.0f, farplane);
 					glm::mat4 view = glm::lookAt(tc.position, tc.position + lc.direction, glm::vec3(0.0f, 1.0f, 0.0f));
 
 					glm::mat4 viewproj = proj * view;
@@ -810,11 +829,12 @@ void Scene::Update(float ts) {
 				viewproj = cc.camerap.viewprojection * glm::lookAt(tc.position, tc.position + cameraorientation, glm::vec3(0.0f, 1.0f, 0.0f));
 			}
 
-
+			mshader->SetVec3("camerapos", tc.position);
 			Render3DModels(mshader, viewproj);
 
 		}
-
+		*/
+		
 
 		// for render gbuffer
 		{
@@ -847,6 +867,122 @@ void Scene::Update(float ts) {
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		}
+
+		// 3d rendering from gbuffer
+		{
+			//glDepthFunc(GL_LEQUAL);
+
+			auto mshader = ShaderManager::Get("3dfromgbuffer");
+			glm::mat4 viewproj = glm::mat4(1.0f);
+
+			auto lights = m_registry.view<TransformComponent, LightComponent>();
+
+			mshader->Bind();
+
+			int samplers[16];
+
+			unsigned int index = 0;
+
+			for (auto e : lights) {
+				auto& lc = lights.get<LightComponent>(e);
+				auto& tc = lights.get<TransformComponent>(e);
+
+				std::string name = std::string("lights[") + std::to_string(index) + std::string("]");
+				std::string camname = std::string("cammatrix[") + std::to_string(index) + std::string("]");
+				std::string indname = name + std::string(".index");
+				std::string typname = name + std::string(".type");
+				std::string colorname = name + std::string(".color");
+
+				mshader->SetVec3(colorname.c_str(), lc.color);
+				mshader->SetInt(indname.c_str(), index);
+				mshader->SetInt(typname.c_str(), (int)lc.lighttype);
+
+				if (lc.lighttype == DIRECTIONAL_LIGHT || lc.lighttype == SPOT_LIGHT) {
+					std::string dirname = name + std::string(".direction");
+					mshader->SetVec3(dirname.c_str(), lc.direction);
+					lc.m_Texture->Bind(16 + index);
+					std::string texturevar = std::string("textureshadowmap[") + std::to_string(index) + std::string("]");
+					mshader->SetInt(texturevar.c_str(), 16 + index);
+				}
+
+				if (lc.lighttype == POINT_LIGHT || lc.lighttype == SPOT_LIGHT) {
+					std::string posname = name + std::string(".position");
+					mshader->SetVec3(posname.c_str(), tc.position);
+				}
+
+				if (lc.lighttype == SPOT_LIGHT) {
+					std::string degreename = name + std::string(".degree");
+					mshader->SetFloat(degreename.c_str(), lc.angle);
+				}
+
+				if (lc.lighttype == POINT_LIGHT) {
+					lc.m_Texture->Bind(16 + index);
+					std::string name = std::string("cubeshadowmap[") + std::to_string(index) + std::string("]");
+					mshader->SetInt(name.c_str(), 16 + index);
+				}
+
+
+				// set viewprojection matrix
+				if (lc.lighttype == DIRECTIONAL_LIGHT) {
+					float w = (float)Window::Width / Window::Height;
+
+					glm::mat4 proj = glm::ortho(-shadoworthosize * w, shadoworthosize * w, -shadoworthosize, shadoworthosize, 0.1f, farplane);
+
+
+					glm::mat4 view = glm::lookAt(tc.position, tc.position + lc.direction, glm::vec3(0.0f, 1.0f, 0.0f));
+
+					glm::mat4 viewproj = proj * view;
+
+					mshader->SetMat4(camname.c_str(), viewproj);
+				}
+
+				else if (lc.lighttype == SPOT_LIGHT) {
+
+					float w = (float)Window::Width / Window::Height;
+					float h = 1.0f;
+
+					glm::mat4 proj = glm::perspective(glm::radians(lc.angle * 2.0f), 1.0f, 1.0f, farplane);
+					glm::mat4 view = glm::lookAt(tc.position, tc.position + lc.direction, glm::vec3(0.0f, 1.0f, 0.0f));
+
+					glm::mat4 viewproj = proj * view;
+
+					mshader->SetMat4(camname.c_str(), viewproj);
+				}
+
+				index++;
+			}
+
+			std::string name = std::string("lights[") + std::to_string(index) + std::string("]");
+			std::string indname = name + std::string(".index");
+			mshader->SetInt(indname.c_str(), -1);
+
+			auto cameraentity = GetPrimaryCameraEntity();
+			auto& cc = cameraentity->GetComponent<CameraComponent>();
+			auto& tc = cameraentity->GetComponent<TransformComponent>();
+
+			if (cc.cameratype == CameraType::Orthographic) {
+				viewproj = cc.camerao.viewprojection * glm::inverse(tc.getmatrix());
+			}
+			else {
+				viewproj = cc.camerap.viewprojection * glm::lookAt(tc.position, tc.position + cameraorientation, glm::vec3(0.0f, 1.0f, 0.0f));
+			}
+
+			mshader->SetVec3("camerapos", tc.position);
+
+			auto& app = Application::GetInstance();
+			app.PositionBuffer->Bind(0);
+			app.NormalBuffer->Bind(1);
+			app.AlbedoBuffer->Bind(2);
+
+			mshader->SetInt("positionbuffer", 0);
+			mshader->SetInt("normalbuffer", 1);
+			mshader->SetInt("albedobuffer", 2);
+
+			gvao.Bind();
+			gebo.Bind();
+			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
 		}
 
@@ -938,6 +1074,13 @@ void Scene::Update(float ts) {
 
 				auto& pc = ent->GetComponent<PhysicsComponent>();
 				auto tc = ent->GetComponent<TransformComponent>();
+
+				if (pc.OnlyPositive) {
+					if (pc.ShapeType == PhysicsShapeType::Box)
+						tc.position.y += pc.BoxHalfExtents.y;
+					else if (pc.ShapeType == PhysicsShapeType::Sphere)
+						tc.position.y += pc.SphereRadius;
+				}
 
 				tc.scale = pc.BoxHalfExtents * 2.0f;
 

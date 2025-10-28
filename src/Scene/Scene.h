@@ -22,6 +22,23 @@ struct Entity;
 
 struct Scene : public std::enable_shared_from_this<Scene> {
 
+
+	// this is for render quad
+	float vertices[20] = {
+		-1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+		1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+		1.0f,  -1.0f, 0.0f, 1.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f
+	};
+
+	unsigned int indices[6] = { 0, 1, 2, 0, 2, 3 };
+
+	VBO gvbo;
+	VAO gvao;
+	EBO gebo;
+
+	Scene(); 
+
 	static MainSetting s_MainSetting;
 
 

@@ -4,27 +4,27 @@ texture13:
 texture15:
   path: res/icons.png
 Entities:
-  - Entity: 5
+  - Entity: 7
     NameComponent:
       name: light
       active: true
     TransformComponent:
-      position: [-0.168537736, 0.119739875, 0]
+      position: [-0.302952975, 0.382915735, 0.723543108]
       rotation: [0, -0, 0]
       scale: [1, 1, 1]
     LightComponent:
-      Type: 2
-      Angle: 0
+      Type: 1
+      Angle: 45
       Color: [1, 1, 1]
-      Direction: [-0.300000012, -1, 0]
+      Direction: [3, -1, 0]
     ChildEntities:
       []
-  - Entity: 4
+  - Entity: 6
     NameComponent:
       name: plane
       active: true
     TransformComponent:
-      position: [0, 0, 0]
+      position: [0, -0.024315685, 0]
       rotation: [0, -0, 0]
       scale: [1, 1, 1]
     Model3DComponent:
@@ -37,15 +37,16 @@ Entities:
       Restitution: 0
       Friction: 1
       Radius: 0.5
+      PositiveOnly: false
     ChildEntities:
       []
-  - Entity: 3
+  - Entity: 5
     NameComponent:
       name: camera
       active: true
     TransformComponent:
-      position: [0.355527163, 0.599416971, 0.676695049]
-      rotation: [-36.8961334, 36.9032593, 0]
+      position: [-0.724418879, 0.679862618, 2.17858934]
+      rotation: [-24.8125725, -22.3024349, 0]
       scale: [1, 1, 1]
     CameraComponent:
       min_x: 0
@@ -59,28 +60,29 @@ Entities:
       camerap:
         angle: 45
         near: 0.100000001
-        far: 100
+        far: 5
       cameratype: 1
       primary: true
     ChildEntities:
       []
-  - Entity: 1
+  - Entity: 3
     NameComponent:
       name: vampire_rb
       active: true
     TransformComponent:
-      position: [-0.0104427794, 0.248835713, -0.000877999992]
-      rotation: [0, -0, 0]
-      scale: [0.999997675, 0.999998868, 0.999997735]
+      position: [-0.117707081, 0.0456843823, -0.510370791]
+      rotation: [0.000289261749, -39.1598282, -0.000682435406]
+      scale: [0.99999243, 0.999994695, 0.999997258]
     PhysicsComponent:
       Mass: 1
-      HalfExtent: [0.0194834378, 0.0681210011, 0.0195746608]
+      HalfExtent: [0.0194834378, 0.0700000003, 0.0195746608]
       ColliderType: 0
       Restitution: 0
       Friction: 1
       Radius: 0.5
+      PositiveOnly: false
     ChildEntities:
-      - Entity: 2
+      - Entity: 4
         NameComponent:
           name: vampire_model
           active: true
@@ -93,7 +95,7 @@ Entities:
           shadername: 3d
         ChildEntities:
           []
-  - Entity: 0
+  - Entity: 2
     NameComponent:
       name: Entity
       active: true
@@ -108,5 +110,42 @@ Entities:
       Restitution: 0
       Friction: 1
       Radius: 0.5
+      PositiveOnly: false
+    ChildEntities:
+      []
+  - Entity: 1
+    NameComponent:
+      name: wall
+      active: true
+    TransformComponent:
+      position: [0.140487447, -0.0243158489, 0.336674124]
+      rotation: [1.27683634e-05, -0.319802314, 0.000141958328]
+      scale: [0.100000031, 0.100000001, 0.100000031]
+    Model3DComponent:
+      filepath: res/model/wall.obj
+      shadername: 3d
+    PhysicsComponent:
+      Mass: 0
+      HalfExtent: [0.100000001, 0.180000007, 0.300000012]
+      ColliderType: 0
+      Restitution: 0
+      Friction: 1
+      Radius: 0.5
+      PositiveOnly: true
+    ChildEntities:
+      []
+  - Entity: 0
+    NameComponent:
+      name: light2
+      active: true
+    TransformComponent:
+      position: [-0.291473478, 0.459141791, -0.660575211]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+    LightComponent:
+      Type: 1
+      Angle: 45
+      Color: [1, 0, 0]
+      Direction: [0, -1, 2]
     ChildEntities:
       []

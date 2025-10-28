@@ -298,19 +298,19 @@ struct LightComponent {
 		
 		if (m_Texture == nullptr) {
 			if (lighttype == POINT_LIGHT)
-				m_Texture = std::make_shared<Texture>(Window::Width, Window::Width, GL_DEPTH_COMPONENT24);
+				m_Texture = std::make_shared<Texture>(Window::Width, Window::Width, GL_DEPTH_COMPONENT32F);
 			else
-				m_Texture = std::make_shared<Texture>(Window::Width, Window::Height, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE);
+				m_Texture = std::make_shared<Texture>(Window::Width, Window::Height, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
 			m_FrameBuffer.AddDepthAttachment(*m_Texture, GL_DEPTH_ATTACHMENT);
 		}
 		else if (Window::Width != m_Texture->width && lighttype == POINT_LIGHT) {
 			m_Texture.reset();
-			m_Texture = std::make_shared<Texture>(Window::Width, Window::Width, GL_DEPTH_COMPONENT24);
+			m_Texture = std::make_shared<Texture>(Window::Width, Window::Width, GL_DEPTH_COMPONENT32F);
 			m_FrameBuffer.AddDepthAttachment(*m_Texture, GL_DEPTH_ATTACHMENT);
 		}
 		else if ((Window::Width != m_Texture->width || Window::Height != m_Texture->height) && lighttype != POINT_LIGHT) {
 			m_Texture.reset();
-			m_Texture = std::make_shared<Texture>(Window::Width, Window::Height, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE);
+			m_Texture = std::make_shared<Texture>(Window::Width, Window::Height, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
 			m_FrameBuffer.AddDepthAttachment(*m_Texture, GL_DEPTH_ATTACHMENT);
 		}
 	}
@@ -346,6 +346,8 @@ struct PhysicsComponent {
 	float Restitution = 0.0f;
 
 	float friction = 1.0f;
+
+	bool OnlyPositive = false;
 
 	PhysicsShapeType ShapeType = PhysicsShapeType::Box;
 
@@ -451,6 +453,13 @@ struct PhysicsComponent {
 		// Read the physics state back to the game engine
 		position = toGlmVec(trans.getOrigin());
 		rotation = toGlmQuat(trans.getRotation());
+
+		if (OnlyPositive) {
+			if (ShapeType == PhysicsShapeType::Box)
+				position.y -= BoxHalfExtents.y;
+			else if (ShapeType == PhysicsShapeType::Sphere)
+				position.y -= SphereRadius;
+		}
 	}
 
 	void applyForce(const glm::vec3& force) {

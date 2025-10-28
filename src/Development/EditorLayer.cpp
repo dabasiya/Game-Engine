@@ -979,6 +979,9 @@ void EditorLayer::Draw(float ts) {
 					ui::Label("Restitution");
 					ui::FloatInputBox("Restitution", pc.Restitution);
 
+					ui::Label("OnlyPositiveSide");
+					ui::CheckBox("OnlyPositiveSide", pc.OnlyPositive);
+
 					ui::popstyle();
 
 					if (ui::Button("Remove Physics Component")) {

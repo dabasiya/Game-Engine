@@ -368,5 +368,7 @@
     <None Include="res\shaders\cubeshadowmap.frag" />
     <None Include="res\shaders\3dline.vs" />
     <None Include="res\shaders\3dline.frag" />
+    <None Include="res\shaders\3dfromgbuffer.vs" />
+    <None Include="res\shaders\3dfromgbuffer.fs" />
   </ItemGroup>
 </Project>

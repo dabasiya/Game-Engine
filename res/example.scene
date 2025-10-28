@@ -1,0 +1,114 @@
+Scene: Undefined
+texture13:
+  path: res/EditorLayerIcons.png
+texture15:
+  path: res/icons.png
+Entities:
+  - Entity: 5
+    NameComponent:
+      name: House_demo
+      active: true
+    TransformComponent:
+      position: [0, 0, -21.777462]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+    Model3DComponent:
+      filepath: res/house_demo.obj
+      shadername: 3d
+    ChildEntities:
+      []
+  - Entity: 4
+    NameComponent:
+      name: Entity
+      active: true
+    TransformComponent:
+      position: [24.2517986, 32.1124382, 5.83829403]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+    LightComponent:
+      Type: 0
+      Angle: 0
+      Color: [1, 1, 1]
+      Direction: [-0.200000003, -0.5, -0.200000003]
+    ChildEntities:
+      []
+  - Entity: 3
+    NameComponent:
+      name: camera
+      active: true
+    TransformComponent:
+      position: [7.21986675, 9.6087141, 60.9291344]
+      rotation: [-22.3169861, -363.888, 0]
+      scale: [1, 1, 1]
+    CameraComponent:
+      min_x: 0
+      max_x: 0
+      min_y: 0
+      max_y: 0
+      camerao:
+        near: 0
+        far: 20
+        size: 0
+      camerap:
+        angle: 45
+        near: 0.100000001
+        far: 100
+      cameratype: 1
+      primary: true
+    ChildEntities:
+      []
+  - Entity: 2
+    NameComponent:
+      name: wall
+      active: true
+    TransformComponent:
+      position: [1.08792228e-05, 0, -0.00272633741]
+      rotation: [-3.9614838e-07, -0.0014078113, -3.41593909e-06]
+      scale: [1, 1, 1]
+    Model3DComponent:
+      filepath: res/model/wall.obj
+      shadername: 3d
+    PhysicsComponent:
+      Mass: 1
+      HalfExtent: [1, 1, 3]
+      ColliderType: 0
+      Restitution: 0
+      Friction: 1
+      Radius: 0.5
+      PositiveOnly: true
+    ChildEntities:
+      []
+  - Entity: 1
+    NameComponent:
+      name: plane
+      active: true
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, -0, 0]
+      scale: [50, 1, 50]
+    Model3DComponent:
+      filepath: res/plane.obj
+      shadername: 3d
+    PhysicsComponent:
+      Mass: 0
+      HalfExtent: [0.5, 0.5, 0.5]
+      ColliderType: 3
+      Restitution: 0
+      Friction: 1
+      Radius: 0.5
+      PositiveOnly: false
+    ChildEntities:
+      []
+  - Entity: 0
+    NameComponent:
+      name: cube
+      active: true
+    TransformComponent:
+      position: [-9.45670128, 1.13095844, 2.7033596]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+    Model3DComponent:
+      filepath: res/cube.obj
+      shadername: 3d
+    ChildEntities:
+      []

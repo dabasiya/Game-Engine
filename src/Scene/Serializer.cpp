@@ -218,6 +218,7 @@ void Serializer::SerializeEntity(YAML::Emitter& out, std::shared_ptr<Entity> e) 
 		out << YAML::Key << "Restitution" << YAML::Value << pc.Restitution;
 		out << YAML::Key << "Friction" << YAML::Value << pc.friction;
 		out << YAML::Key << "Radius" << YAML::Value << pc.SphereRadius;
+		out << YAML::Key << "PositiveOnly" << YAML::Value << pc.OnlyPositive;
 		out << YAML::EndMap;
 	}
 }
@@ -493,6 +494,7 @@ void Serializer::DeserializeEntity(std::shared_ptr<Entity> deserializedentity, Y
 		npc.Restitution = pc["Restitution"].as<float>();
 		npc.ShapeType = (PhysicsShapeType)pc["ColliderType"].as<unsigned int>();
 		npc.BoxHalfExtents = pc["HalfExtent"].as<glm::vec3>();
+		npc.OnlyPositive = pc["PositiveOnly"].as<bool>();
 	}
 }
 

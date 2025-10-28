@@ -43,6 +43,7 @@ Application::Application() {
 	ShaderManager::Add("cubeshadowmap", "res/shaders/cubeshadowmap.vert", "res/shaders/cubeshadowmap.geometry", "res/shaders/cubeshadowmap.frag");
 	ShaderManager::Add("3dline", "res/shaders/3dline.vs", "res/shaders/3dline.frag");
 	ShaderManager::Add("gbuffer", "res/shaders/gbuffer.vs", "res/shaders/gbuffer.fs");
+	ShaderManager::Add("3dfromgbuffer", "res/shaders/3dfromgbuffer.vs", "res/shaders/3dfromgbuffer.fs");
 
 	// allocate skybox
 	skybox = new SkyBox();
@@ -61,8 +62,8 @@ Application::Application() {
 
 	// create serializer for save and load scene from disk
 	s_serializer = Serializer(m_scene);
-	s_serializer.Deserialize("res/model/model.scene");
-	//s_serializer.Deserialize("res/level_1.scene");
+	//s_serializer.Deserialize("res/model/model.scene");
+	s_serializer.Deserialize("res/example.scene");
 	//s_serializer.Deserialize("res/level.scene");
 	//s_serializer.Deserialize("res/monopoly.scene");
 
@@ -100,10 +101,10 @@ void Application::ReCreateGBuffer() {
 	DepthBuffer.reset();
 	AlbedoBuffer.reset();
 
-	PositionBuffer = std::make_shared<Texture>(Window::Width, Window::Height, GL_RGB16, GL_RGB, 0);
-	NormalBuffer = std::make_shared<Texture>(Window::Width, Window::Height, GL_RGB16, GL_RGB, 0);
+	PositionBuffer = std::make_shared<Texture>(Window::Width, Window::Height, GL_RGB16F, GL_RGB, 0);
+	NormalBuffer = std::make_shared<Texture>(Window::Width, Window::Height, GL_RGB16F, GL_RGB, 0);
 	DepthBuffer = std::make_shared<Texture>(Window::Width, Window::Height, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
-	AlbedoBuffer = std::make_shared<Texture>(Window::Width, Window::Height, GL_RGB8, GL_RGB, 0);
+	AlbedoBuffer = std::make_shared<Texture>(Window::Width, Window::Height, GL_RGBA8, GL_RGBA, 0);
 	// gbuffer
 	gBuffer->AddColorAttachment(0, *PositionBuffer);
 	gBuffer->AddColorAttachment(1, *NormalBuffer);

@@ -52,7 +52,7 @@ void SkyBox::AddTexture(unsigned int index, const std::string& filepath) {
 
 
 void SkyBox::Draw(Shader& shader) {
-    glBindTexture(GL_TEXTURE_CUBE_MAP, ID);
+    Bind(0);
 
     shader.Bind();
 

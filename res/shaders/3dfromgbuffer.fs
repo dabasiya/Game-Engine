@@ -1,4 +1,8 @@
-#version 400 core
+#version 330 core
+
+in vec2 texcoords;
+
+out vec4 Fragcolor;
 
 const int DIRECTIONAL_LIGHT = 0;
 const int SPOT_LIGHT = 1;
@@ -13,25 +17,19 @@ struct Light {
 	int index;
 };
 
-out vec4 Fragcolor;
 
-in vec3 fragpos;
 
-in vec2 texcoords;
-
-in vec4 colors;
-
-in vec3 Normal;
-
-uniform sampler2D texture_diffuse1;
-uniform sampler2D texture_specular1;
+uniform sampler2D positionbuffer;
+uniform sampler2D normalbuffer;
+uniform sampler2D albedobuffer;
 
 uniform mat4 cammatrix[16];
 
 uniform Light lights[16];
 
-uniform samplerCube cubeshadowmap[8];
 uniform sampler2D textureshadowmap[8];
+uniform samplerCube cubeshadowmap[8];
+
 
 uniform bool hastexture;
 
@@ -121,7 +119,10 @@ float getShadowFactor(int index, vec3 fragpos, vec3 normal) {
 void main() {
 	vec3 color = vec3(0.0);
 
+    vec3 Normal = (texture(normalbuffer, texcoords).xyz * 2.0) - 1.0;
 	vec3 N = normalize(Normal);
+
+    vec3 fragpos = texture(positionbuffer, texcoords).xyz;
 
 	int index = 0;
     while(lights[index].index != -1) {
@@ -178,14 +179,14 @@ void main() {
         if(shadowFactor < 0.3)
             specular = 0.0;
 
-        color += amb + (lights[index].color * diffuse * shadowFactor * attenuation) + vec3(specular);
+        vec3 diffuseterm = lights[index].color * diffuse;
+        vec3 specularterm = lights[index].color * specular;
+
+        color += amb + ((diffuseterm + specularterm) * shadowFactor * attenuation);
 
 
 		index++;
 	}
 
-	if(hastexture)
-		Fragcolor = texture(texture_diffuse1, texcoords) * vec4(color, 1.0);
-	else 
-		Fragcolor = colors * vec4(color, 1.0); 
+	Fragcolor = texture(albedobuffer, texcoords) * vec4(color, 1.0);
 }
