@@ -55,9 +55,9 @@ FontRenderer::FontRenderer(unsigned int fontsize, const std::string& path, unsig
 
 		for (unsigned i = 0; i < size; i += 4) {
 			unsigned int index = (i / 4);
-			charbuffer[i] = face->glyph->bitmap.buffer[index];
-			charbuffer[i + 1] = face->glyph->bitmap.buffer[index];
-			charbuffer[i + 2] = face->glyph->bitmap.buffer[index];
+			charbuffer[i] = 255;
+			charbuffer[i + 1] = 255;
+			charbuffer[i + 2] = 255;
 			charbuffer[i + 3] = face->glyph->bitmap.buffer[index];
 		}
 
