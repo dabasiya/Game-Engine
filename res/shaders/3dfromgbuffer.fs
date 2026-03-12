@@ -2,11 +2,14 @@
 
 in vec2 texcoords;
 
-out vec4 Fragcolor;
+layout (location = 0) out vec4 Fragcolor;
 
 const int DIRECTIONAL_LIGHT = 0;
 const int SPOT_LIGHT = 1;
 const int POINT_LIGHT = 2;
+const int NO_SHADOW_POINT_LIGHT = 3;
+
+const int occlusioncount = 32;
 
 struct Light {
 	vec3 position;
@@ -19,9 +22,12 @@ struct Light {
 
 
 
+
 uniform sampler2D positionbuffer;
 uniform sampler2D normalbuffer;
 uniform sampler2D albedobuffer;
+uniform sampler2D depthbuffer;
+uniform sampler2D ssaobuffer;
 
 uniform mat4 cammatrix[16];
 
@@ -35,7 +41,9 @@ uniform bool hastexture;
 
 uniform vec3 camerapos;
 
+uniform mat4 viewproj;
 
+uniform float ambscale;
 
 float getShadowFactor(int index, vec3 fragpos, vec3 normal) {
     
@@ -45,8 +53,11 @@ float getShadowFactor(int index, vec3 fragpos, vec3 normal) {
   
     float shadowFactor = 0.0;
     
+    if(lights[index].type == NO_SHADOW_POINT_LIGHT) {
+        return 1.0;
+    }
     // --- Point Light Shadow Logic (Cubemap) ---
-    if (lights[index].type == POINT_LIGHT) {
+    else if (lights[index].type == POINT_LIGHT) {
         
         // **TODO: Pass far plane as a uniform or struct member, 99.0 is a hardcoded guess**
         float farplane = 100.0; 
@@ -116,6 +127,7 @@ float getShadowFactor(int index, vec3 fragpos, vec3 normal) {
 }
 
 
+
 void main() {
 	vec3 color = vec3(0.0);
 
@@ -130,12 +142,13 @@ void main() {
        
 		vec3 dis = lights[index].position - fragpos;
 		float distance = length(dis);
-
+        vec3 L = normalize(dis);                    // <-- FIX: Define L (light direction)
+        float NdotL = max(dot(N, L), 0.0);
         vec3 nd = normalize(lights[index].direction);
         
  
         float attenuation = 1.0;
-        if(lights[index].type == SPOT_LIGHT || lights[index].type == POINT_LIGHT) {
+        if(lights[index].type == SPOT_LIGHT || lights[index].type == POINT_LIGHT|| lights[index].type == NO_SHADOW_POINT_LIGHT) {
             distance /= 30.0;
             attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * distance * distance);
         }
@@ -147,46 +160,66 @@ void main() {
 			diffuse = max(dot(-nd, N), 0.0);
 		}
 		else if(lights[index].type == SPOT_LIGHT) {
-			float a = max(dot(normalize(-dis), nd), 0.0);
-			float maxlight = cos(3.14159 * (lights[index].degree / 180.0));
-			
-			if(a < maxlight) 
-				a = 0;
-			
-			diffuse = max(dot(normalize(dis), N), 0.0) * a;
-		}
-		else if(lights[index].type == POINT_LIGHT) {
+		
+
+            diffuse = NdotL;
+    
+            vec3 spotDir = nd;
+    
+           
+            float cosTheta = dot(-L, spotDir);
+
+            
+            float cosInnerCutoff = cos(radians(lights[index].degree));
+            float cosOuterCutoff = cos(radians(lights[index].degree + 5.0));
+            
+            float spotFactor = smoothstep(cosOuterCutoff, 
+                                        cosInnerCutoff, 
+                                        cosTheta);
+    
+            
+            diffuse = NdotL * spotFactor;
+        }
+		
+		else if(lights[index].type == POINT_LIGHT || lights[index].type == NO_SHADOW_POINT_LIGHT) {
 			diffuse = max(dot(normalize(dis), normalize(Normal)), 0.0);
 		}
 
 
+
+        
         
         vec3 viewdir = camerapos - fragpos;
         vec3 lightdir = lights[index].position - fragpos;
         vec3 reflectdir = reflect(normalize(-lightdir), N);
         float specular = pow(max(dot(reflectdir, normalize(viewdir)), 0.0), 32);
 
-        if(lights[index].type == SPOT_LIGHT) {
-            float a = max(dot(normalize(-dis), nd), 0.0);
-			float maxlight = cos(3.14159 * (lights[index].degree / 180.0));
-			
-			if(a < maxlight) 
-				specular = 0.0;
-        }
+        
+        if(diffuse == 0)
+            specular = 0;
 
-        vec3 amb = lights[index].color * 0.1;
+
+
         float shadowFactor = getShadowFactor(index, fragpos, N);
         if(shadowFactor < 0.3)
             specular = 0.0;
 
+
+        
         vec3 diffuseterm = lights[index].color * diffuse;
         vec3 specularterm = lights[index].color * specular;
 
-        color += amb + ((diffuseterm + specularterm) * shadowFactor * attenuation);
+
+        color += (diffuseterm + specularterm) * shadowFactor * attenuation;
 
 
 		index++;
 	}
 
+    vec3 amb = vec3(ambscale);
+    float ssao = texture(ssaobuffer, texcoords).r;
+    color += (amb * ssao);
+
 	Fragcolor = texture(albedobuffer, texcoords) * vec4(color, 1.0);
+
 }

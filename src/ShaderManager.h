@@ -12,6 +12,7 @@ struct ShaderManager {
 
 	static void Add(const std::string& name, const std::string& vertexshaderpath, const std::string& fragmentshaderpath);
 	static void Add(const std::string& name, const std::string& vertexshaderpath, const std::string& geometryshaderpath, const std::string& fragmentshaderpath);
+	static void Add(const std::string& name, const std::string& computepath);
 	static void Remove(const std::string& name);
 	static std::shared_ptr<Shader> Get(const std::string& name);
 };

@@ -6,6 +6,11 @@ FrameBuffer::FrameBuffer() {
 	Bind();
 }
 
+void FrameBuffer::Clear() {
+	m_Indexes.clear();
+	m_Textures.clear();
+}
+
 
 void FrameBuffer::Bind() {
 	glBindFramebuffer(GL_FRAMEBUFFER, ID);

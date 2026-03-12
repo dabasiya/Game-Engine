@@ -2,6 +2,7 @@
 
 #include <Application.h>
 #include "Entity.h"
+#include <Scene/PhysicsSystem.h>
 
 #include "Components.h"
 struct SceneManager {
@@ -19,6 +20,11 @@ struct SceneManager {
 			}
 		}
 		return ent;
+	}
+
+	static PhysicsSystem* GetPhysicsSystem() {
+		auto app = Application::GetInstance();
+		return app.s_serializer.m_scene->m_PhysicsSystem;
 	}
 
 

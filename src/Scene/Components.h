@@ -16,9 +16,15 @@
 #include <ParticleSystem.h>
 #include <Model.h>
 
+#include <Animation3D.h>
+#include <Animator.h>
+
 #include <FrameBuffer.h>
 
 #include <btBulletDynamicsCommon.h>
+
+
+
 
 enum CameraType {
 	Orthographic = 0,
@@ -28,7 +34,8 @@ enum CameraType {
 enum LightType {
 	DIRECTIONAL_LIGHT = 0,
 	SPOT_LIGHT = 1,
-	POINT_LIGHT = 2
+	POINT_LIGHT = 2,
+	NO_SHADOW_POINT_LIGHT = 3
 };
 
 struct NameComponent {
@@ -55,30 +62,52 @@ struct RelationshipComponent {
 	RelationshipComponent() {}
 };
 
-
+// ...existing code...
 struct TransformComponent {
-	glm::vec3 position = glm::vec3(0.0f);
-	glm::vec3 rotation = glm::vec3(0.0f);
-	glm::vec3 scale = glm::vec3(1.0f);
+    glm::vec3 position = glm::vec3(0.0f);
+    glm::vec3 rotation = glm::vec3(0.0f); // Euler degrees (for UI)
+    glm::vec3 scale = glm::vec3(1.0f);
 
-	glm::mat4 worldtransform = glm::mat4(1.0f);
+    // new: canonical rotation storage
+    glm::quat rotationQuat = glm::quat(glm::vec3(0.0f));
 
-	TransformComponent() {}
-	TransformComponent(const glm::vec3& value)
-		: position(value)
-	{
-	}
+    glm::mat4 worldtransform = glm::mat4(1.0f);
 
-	glm::mat4 getmatrix() {
-		glm::mat4 rotationmatrix = glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f)) *
-			glm::rotate(glm::mat4(1.0f), glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f)) *
-			glm::rotate(glm::mat4(1.0f), glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    // keep Euler and quat in sync
+    void SetRotationEuler(const glm::vec3& degrees) {
+        rotation = degrees;
+        rotationQuat = glm::quat(glm::radians(rotation));
+    }
+    void SetRotationQuat(const glm::quat& q) {
+        rotationQuat = q;
+        //rotation = glm::degrees(glm::eulerAngles(rotationQuat));
+    }
 
-		return glm::translate(glm::mat4(1.0f), position) *
-			rotationmatrix *
-			glm::scale(glm::mat4(1.0f), scale);
+    // build local matrix using quaternion (T * R * S)
+    glm::mat4 getmatrix() const {
+        glm::mat4 t = glm::translate(glm::mat4(1.0f), position);
+        glm::mat4 r = glm::mat4_cast(rotationQuat);
+        glm::mat4 s = glm::scale(glm::mat4(1.0f), scale);
+        return t * r * s;
+    }
+
+
+	// this is function is only for camera because camera use transformcomponent rotation for its view direction
+	glm::vec3 direction() const {
+
+		glm::vec3 radians = glm::radians(rotation);
+		float pitch = radians.x;
+		float yaw = radians.y;
+		
+		glm::vec3 direction;
+		direction.x = -glm::sin(yaw) * glm::cos(pitch);
+		direction.y = glm::sin(pitch);  // Negative because +pitch should look down
+		direction.z = -glm::cos(yaw) * glm::cos(pitch);
+		
+		return glm::normalize(direction);
 	}
 };
+// ...existing code...
 
 
 struct CameraComponent {
@@ -142,6 +171,41 @@ struct SpriteRendererComponent {
 	}
 };
 
+struct UISpriteRendererComponent {
+
+	SubTexture m_subtexture;
+
+	bool type = 0; // by default its color type spriterenderercomponent
+
+
+	float opacity = 1.0f;
+
+
+	bool transparent = false;
+	glm::vec4 color = glm::vec4(0.0f);
+
+	UISpriteRendererComponent(const glm::vec4& a_color)
+		: color(a_color), type(0)
+	{
+
+	}
+
+	UISpriteRendererComponent(const SubTexture& a_subtexture, const glm::vec4& a_color, bool type)
+		: m_subtexture(a_subtexture), color(a_color), type(type) {
+
+	}
+
+	UISpriteRendererComponent(const SubTexture& a_subtexture)
+		: m_subtexture(a_subtexture), type(1)
+	{
+	}
+
+	UISpriteRendererComponent()
+		: type(0), color(glm::vec4(1.0f))
+	{
+	}
+};
+
 struct FontRendererComponent {
 	std::string text;
 
@@ -154,6 +218,21 @@ struct FontRendererComponent {
 	FontRendererComponent(const std::string& a_text, float psize, float opacity = 1.0f)
 		: text(a_text), opacity(opacity), pixelsize(psize)
 	{}
+};
+
+struct UIFontRendererComponent {
+	std::string text;
+
+	float opacity;
+
+	float pixelsize;
+
+	UIFontRendererComponent() = default;
+
+	UIFontRendererComponent(const std::string& a_text, float psize, float opacity = 1.0f)
+		: text(a_text), opacity(opacity), pixelsize(psize)
+	{
+	}
 };
 
 struct ScriptComponent {
@@ -277,16 +356,27 @@ struct Model3DComponent {
 	std::shared_ptr<Model> mModel = nullptr;
 
 	std::string shadername;
+
+	bool bloom = false;
+
+	bool outline = false;
 };
 
 
 struct LightComponent {
-	glm::vec3 color;
+
+	float shadoworthosize = 40.0f;
+	float farplane = 100.0f;
+
+
+	glm::vec4 color;
 
 	LightType lighttype;
 
 	// In Case of DirectionLight and SpotLight
 	glm::vec3 direction;
+
+	int depthcubesize = 256;
 
 	// In Case of spotlight
 	float angle;
@@ -294,21 +384,64 @@ struct LightComponent {
 	FrameBuffer m_FrameBuffer;
 	std::shared_ptr<Texture> m_Texture;
 
+	bool rerender = true;
+
+	bool active = true;
+
+	void EntityUpdate(const glm::vec3 &position, const glm::vec3 pos) {
+		
+		if (lighttype == LightType::DIRECTIONAL_LIGHT) {
+			float w = (float)Window::Width / Window::Height;
+
+			glm::mat4 proj = glm::ortho(-shadoworthosize * w, shadoworthosize * w, -shadoworthosize, shadoworthosize, 0.1f, farplane);
+
+			glm::mat4 viewproj = proj * glm::lookAt(-direction * farplane, -direction * farplane + direction, glm::vec3(0.0f, 1.0f, 0.0f));
+
+			glm::vec4 test = viewproj * glm::vec4(pos, 1.0f);
+
+			if ((test.x >= -1.0f && test.x <= 1.0f) && (test.y >= -1.0f && test.y <= 1.0f)) {
+				rerender = true;
+			}
+		}
+
+		else if (lighttype == LightType::SPOT_LIGHT) {
+			float w = (float)Window::Width / Window::Height;
+			float h = 1.0f;
+
+			glm::mat4 proj = glm::perspective(glm::radians((angle + 10.0f) * 2.0f), 1.0f, 1.0f, farplane);
+
+			glm::mat4 view = glm::lookAt(position, position + direction, glm::vec3(0.0f, 1.0f, 0.0f));
+
+			glm::mat4 viewproj = proj * view;
+
+			glm::vec4 test = viewproj * glm::vec4(pos, 1.0f);
+
+			test.x /= test.w;
+			test.y /= test.w;
+
+			if ((test.x >= -1.0f && test.x <= 1.0f) && (test.y >= -1.0f && test.y <= 1.0f)) {
+				rerender = true;
+			}
+		}
+		else {
+			rerender = true;
+		}
+	}
+
+
 	void Update() {
 		
 		if (m_Texture == nullptr) {
+			rerender = true;
 			if (lighttype == POINT_LIGHT)
-				m_Texture = std::make_shared<Texture>(Window::Width, Window::Width, GL_DEPTH_COMPONENT32F);
+				m_Texture = std::make_shared<Texture>(depthcubesize, depthcubesize, GL_DEPTH_COMPONENT32F);
 			else
 				m_Texture = std::make_shared<Texture>(Window::Width, Window::Height, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
 			m_FrameBuffer.AddDepthAttachment(*m_Texture, GL_DEPTH_ATTACHMENT);
 		}
-		else if (Window::Width != m_Texture->width && lighttype == POINT_LIGHT) {
-			m_Texture.reset();
-			m_Texture = std::make_shared<Texture>(Window::Width, Window::Width, GL_DEPTH_COMPONENT32F);
-			m_FrameBuffer.AddDepthAttachment(*m_Texture, GL_DEPTH_ATTACHMENT);
-		}
-		else if ((Window::Width != m_Texture->width || Window::Height != m_Texture->height) && lighttype != POINT_LIGHT) {
+		
+		if ((Window::Width != m_Texture->width || Window::Height != m_Texture->height) && lighttype != POINT_LIGHT) {
+			rerender = true;
 			m_Texture.reset();
 			m_Texture = std::make_shared<Texture>(Window::Width, Window::Height, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
 			m_FrameBuffer.AddDepthAttachment(*m_Texture, GL_DEPTH_ATTACHMENT);
@@ -353,6 +486,8 @@ struct PhysicsComponent {
 
 	// Box properties
 	glm::vec3 BoxHalfExtents = glm::vec3(0.5f, 0.5f, 0.5f);
+
+	bool Rotations[3] = { true, true, true };
 
 	// Sphere properties (if ShapeType == Sphere)
 	float SphereRadius = 0.5f;
@@ -422,6 +557,11 @@ struct PhysicsComponent {
 
 		// 5. Add to the World
 		world->addRigidBody(m_rigidBody);
+
+		btVector3 brotations(Rotations[0] ? 1.0f : 0.0f, Rotations[1] ? 1.0f : 0.0f , Rotations[2] ? 1.0f : 0.0f);
+
+		m_rigidBody->setAngularFactor(brotations);
+
 	}
 
 	// New function: Called to destroy the body and prepare for re-entry
@@ -429,6 +569,7 @@ struct PhysicsComponent {
 		if (!m_rigidBody) {
 			return; // Nothing to destroy
 		}
+
 
 		// 1. Remove the body from the world first
 		world->removeRigidBody(m_rigidBody);
@@ -463,9 +604,39 @@ struct PhysicsComponent {
 	}
 
 	void applyForce(const glm::vec3& force) {
-		if (!m_rigidBody) return;
+		if (!m_rigidBody) {
+			std::cout << "body is not created!" << std::endl;
+			return;
+		}
 
+
+		m_rigidBody->activate(true);
 		m_rigidBody->applyCentralForce(toBtVec(force));
+	}
+
+	void applyImpulseForce(const glm::vec3& force) {
+		if (!m_rigidBody) {
+			std::cout << "body is not created!" << std::endl;
+			return;
+		}
+		m_rigidBody->activate(true);
+		m_rigidBody->applyCentralImpulse(toBtVec(force));
+	}
+
+	glm::vec3 GetVelocity() {
+		if (!m_rigidBody)
+			return glm::vec3(0.0f);
+
+		btVector3 vel = m_rigidBody->getLinearVelocity();
+		return toGlmVec(vel);
+	}
+
+	void SetVelocity(glm::vec3 velocity) {
+		if (!m_rigidBody)
+			return;
+		
+		m_rigidBody->activate(true);
+		m_rigidBody->setLinearVelocity(toBtVec(velocity));
 	}
 
 	// Getter for the PhysicsSystem
@@ -494,17 +665,7 @@ struct PhysicsComponent {
 
 	static glm::quat EulerToQuat(const glm::vec3& eulerAnglesRadians) {
 
-		// METHOD 1 (Standard GLM Conversion):
-		// Assumes ZYX order (Yaw, Pitch, Roll) by default.
-		// The components are often expected as (pitch, yaw, roll) depending on convention,
-		// but glm::quat(vec3) generally handles (x_pitch, y_yaw, z_roll)
-		// using an internal conversion based on ZYX matrix multiplication.
-		// This is the simplest but least explicit.
-		// return glm::quat(eulerAnglesRadians); 
-
-		// METHOD 2 (Explicit Matrix Conversion - Recommended for Clarity):
-		// This explicitly builds a rotation matrix from Euler angles (in ZYX order) 
-		// and then converts the matrix to a quaternion.
+		
 
 		glm::vec3 degree = (glm::pi<float>() / 180.0f)*eulerAnglesRadians;
 		glm::mat4 rotationMatrix = glm::eulerAngleYXZ(
@@ -516,10 +677,156 @@ struct PhysicsComponent {
 	}
 
 	static glm::vec3 QuatToEuler(const glm::quat& q) {
-		// The eulerAngles function returns the Euler angles (pitch, yaw, roll) 
-		// in RADIANS, generally following the YXZ convention (or similar) 
-		// to minimize discontinuities.
-		glm::vec3 degree = glm::eulerAngles(q) * (180 / glm::pi<float>());
-		return degree;
+
+		// 1. Get the raw Euler angles in RADIANS (pitch, yaw, roll)
+		glm::vec3 eulerRadians = glm::eulerAngles(q);
+
+		// 2. Create the new vector, swapping Y (Yaw) and Z (Roll) components.
+		glm::vec3 swappedEulerRadians = glm::vec3(
+			eulerRadians.x, // X (Pitch) remains X
+			eulerRadians.y, // Y is now the original Z (Roll)
+			eulerRadians.z  // Z is now the original Y (Yaw)
+		);
+
+		// 3. Convert the resulting vector to DEGREES for output
+		glm::vec3 eulerDegrees = swappedEulerRadians * (180.0f / glm::pi<float>());
+
+		return eulerDegrees;
 	}
+};
+
+
+struct Animation3DComponent {
+	
+	std::unordered_map <std::string, std::shared_ptr<Animation3D>> mAnimation3DMap;
+	std::unordered_map <std::string, std::shared_ptr<Animator>> mAnimatorMap;
+	std::vector<std::string> mAnimationNames;
+
+	std::vector<bool> activeanimatioins;
+
+	unsigned int activeanimationindex = 0;
+
+	bool isFirsttime = true;
+
+	unsigned int UBO;
+
+
+	void Reload(const std::string& path, Model* model) {
+		mAnimation3DMap.clear();
+		mAnimatorMap.clear();
+		mAnimationNames.clear();
+		activeanimatioins.clear();
+
+		activeanimationindex = 0;
+
+		mAnimationNames.push_back("No Animation");
+		activeanimatioins.push_back(true);
+
+		unsigned int index = 0;
+		while (true) {
+			
+			std::string animationname = Animation3D::GetAnimationName(path, index);
+
+			if (animationname == "")
+				break;
+
+			mAnimation3DMap[animationname] = std::make_shared<Animation3D>(path, model, index);
+			mAnimatorMap[animationname] = std::make_shared<Animator>(mAnimation3DMap[animationname].get());
+			mAnimationNames.push_back(animationname);
+			activeanimatioins.push_back(false);
+
+
+			index++;
+		}
+
+
+		// create UBO
+
+		glCreateBuffers(1, &UBO);
+		glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+		glBufferData(GL_UNIFORM_BUFFER, 300 * sizeof(glm::mat4), NULL, GL_DYNAMIC_DRAW);
+	}
+
+	void ResetAnimation(const std::string& name) {
+		if (mAnimatorMap.find(name) == mAnimatorMap.end())
+			return;
+
+		mAnimatorMap[name]->Reset();
+	}
+
+	void UpdateAnimation(float ts) {
+		
+		if (mAnimatorMap.find(mAnimationNames[activeanimationindex]) == mAnimatorMap.end())
+			return;
+
+		mAnimatorMap[mAnimationNames[activeanimationindex]]->UpdateAnimation(ts);
+	}
+
+	inline std::vector<glm::mat4> GetFinalBoneMetrices() {
+		std::string name = mAnimationNames[activeanimationindex];
+		if (mAnimatorMap.find(name) == mAnimatorMap.end())
+			return { glm::mat4(1.0f) };
+
+		return mAnimatorMap[name]->GetFinalBoneMetrices();
+	}
+
+	void setActive(unsigned int index) {
+		unsigned int len = mAnimationNames.size();
+
+		if (index >= len)
+			return;
+
+		for (unsigned int i = 0; i < len; i++)
+			activeanimatioins[i] = false;
+
+		activeanimatioins[index] = true;
+		activeanimationindex = index;
+	}
+
+
+	void SetBoneMetrices(std::shared_ptr<Shader> shader) {
+
+		if (isFirsttime) {
+			glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+			int index = shader->GetUniformBlockIndex("BoneMetrices");
+			glUniformBlockBinding(shader->ID, index, 0);
+			glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBO);
+			isFirsttime = false;
+		}
+
+		unsigned int index = 1;
+		unsigned  int len = mAnimationNames.size();
+		for (unsigned int i = 0; i < len; i++) {
+			if (activeanimatioins[i]) {
+				index = i;
+				break;
+			}
+		}
+
+		glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+		auto bones = GetFinalBoneMetrices();
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4) * bones.size(), bones.data());
+	}
+};
+
+
+
+
+struct CachedComponents {
+
+	// for track record of available component
+
+	bool havecameracomponent;
+	bool havespriterenderercomponent;
+	bool havefontrenderercomponent;
+	bool havescriptcomponent;
+	bool haveanimationgroupcomponent;
+	bool haverigidbody2dcomponent;
+	bool haveboxcollider2dcomponent;
+	bool haveparticlegeneratorcomponent;
+	bool havemodel3dcomponent;
+	bool havelightcomponent;
+	bool havephysicscomponent;
+	bool haveanimation3dcomponent;
+
 };

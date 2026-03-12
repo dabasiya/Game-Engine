@@ -36,8 +36,8 @@ Entities:
         coords1: [0, 0]
         coords2: [0, 0]
       count: 0
-      velocity: [0, 0]
-      velocityvariation: [0.100000001, 0.100000001]
+      velocity: [0, 0, 0]
+      velocityvariation: [0.100000001, 0.100000001, 0.1000]
       generate_particle_from_area: false
       active: true
       beginsize: 1
@@ -46,3 +46,4 @@ Entities:
       sizevariation: 0
       colorbegin: [1, 1, 1, 1]
       colorend: [1, 1, 1, 1]
+      gravity: false

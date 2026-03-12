@@ -15,6 +15,14 @@
 #include <algorithm>
 #include <ShaderManager.h>
 
+#include <Instrumentor.h>
+
+std::vector<const char*> renderoutputstr = {
+	"Final Output",
+	"SSAO",
+	"Depth"
+};
+
 
 EditorCameraType EditorLayer::s_EditorCameraType = TWO_AXIS_MOVE_CAMERA;
 float EditorLayer::EditorCameraSpeed = 1.0f;
@@ -30,6 +38,8 @@ unsigned int EditorLayer::s_EntityEditingMode = 0;
 bool EditorLayer::camera_locked = false;
 bool EditorLayer::showcolliders = false;
 
+bool EditorLayer::showobjectselectionscene = false;
+
 
 SubTexture EditorLayer::particlegeneratorsubtexture;
 CopiedEntity EditorLayer::s_CopiedEntity;
@@ -37,11 +47,40 @@ CameraTransform EditorLayer::s_CameraTransform;
 
 
 
-// Labels for Options
-std::vector<std::string> Label_XYZ = { "X", "Y", "Z" };
-std::vector<std::string> Label_RGB = { "R", "G", "B" };
+std::shared_ptr<Entity> deleteentity = std::make_shared<Entity>();
 
-std::vector<std::string> Label_LightTypes = { "Directional", "SpotLight", "PointLight" };
+
+std::vector<const char*> shapetypes = {
+						"Box",
+						"Sphere",
+						"Capsule",
+						"Infinite Plane"
+};
+
+
+// Rotation lock
+std::vector<const char*> rotations = {
+	"RotationX",
+	"RotationY",
+	"RotationZ"
+};
+
+std::vector<const char*> physicsengines = {
+	"Box2D",
+	"Bullet"
+};
+
+
+
+// Labels for Options
+std::vector<const char*> Label_XYZ = { "X", "Y", "Z" };
+std::vector<const char*> Label_RGB = { "R", "G", "B" };
+
+std::vector<const char*> Label_LightTypes = { "Directional", "SpotLight", "PointLight", "No Shadow Point Light"};
+
+glm::vec4 testcolor = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+
+std::unordered_map<std::string, SubTexture> EditorLayer::EditorLayerIcons;
 
 EditorLayer::EditorLayer() {
 	ui::windowdatas.push_back(&windowmanagerdata);
@@ -52,6 +91,8 @@ EditorLayer::EditorLayer() {
 	ui::windowdatas.push_back(&texturewindowdata);
 	ui::windowdatas.push_back(&entityregistrarwindowdata);
 	ui::windowdatas.push_back(&skyboxwindowdata);
+	ui::windowdatas.push_back(&colorselectorwindowdata);
+	ui::windowdatas.push_back(&cameraselectorwindowdata);
 
 	m_depthbuffer = std::make_unique<Texture>(Window::Width, Window::Height, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
 	m_colorbuffer = std::make_unique<Texture>(Window::Width, Window::Height, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
@@ -69,9 +110,20 @@ EditorLayer::EditorLayer() {
 
 	selectedentity->id = (entt::entity)0;
 
+	EditorLayerIconsTexture = std::make_shared<Texture>("res/EditorLayerIcons.png");
+	Renderer2D::SetTexture(EditorLayerIconsTexture, 13);
+
 
 	EditorLayerIcons["ObjectGizmos"] = { 13, {0.0f, 1.0f}, {0.125f, 0.875f} };
 	EditorLayerIcons["ColliderGizmos"] = { 13, {0.125f, 1.0f}, {0.25f, 0.875f} };
+	EditorLayerIcons["ColorSelect"] = { 13, {0.25f, 1.0f}, {0.375f, 0.875f} };
+
+	ui::selectedcolor = &testcolor;
+
+
+	// for ui
+	ui::cliprects.reserve(16);
+	ui::quadindexes.reserve(16);
 }
 
 
@@ -81,20 +133,31 @@ void EditorLayer::RenderEntityHierarchyTree(std::shared_ptr<Entity> entity, unsi
 	auto& rc = entity->GetComponent<RelationshipComponent>();
 
 
-	if (ui::DropDownButton(namec.name, rc.isUIOpen, offset)) {
-		selectedentity->id = entity->id;
-		selectedentity->m_scene = selectedscene;
+	if (ui::DropDownButton(namec.name.c_str(), rc.isUIOpen, offset)) {
 		if (glfwGetKey(Window::ID, GLFW_KEY_C)) {
-			auto ce = selectedentity->CreateChildEntity("Entity");
+			auto ce = entity->CreateChildEntity("Entity");
 			Scene::s_msgbatch.Add(MessageType::info, "Created Child Entity.");
 		}
 		else if (glfwGetKey(Window::ID, GLFW_KEY_LEFT_ALT)) {
-			selectedscene->DestroyEntity(selectedentity);
 			Scene::s_msgbatch.Add(MessageType::info, "Entity Deleted.");
-			selectedentity->id = (entt::entity)0;
-			selectedentity->m_scene = nullptr;
+
+			if (entity->HasComponent<RelationshipComponent>())
+				std::cout << "Relationcomponent have" << std::endl;
+
+			deleteentity->id = (entt::entity)entity->id;
+			deleteentity->m_scene = entity->m_scene;
+
+			if (entity->id == selectedentity->id) {
+				selectedentity->id = (entt::entity)0;
+				selectedentity->m_scene = nullptr;
+			}
 
 			s_GizmoMode = ObjectMode;
+		}
+		else {
+			selectedentity->id = entity->id;
+			selectedentity->m_scene = entity->m_scene;
+			ui::resetInputs();
 		}
 	}
 
@@ -109,22 +172,21 @@ void EditorLayer::RenderEntityHierarchyTree(std::shared_ptr<Entity> entity, unsi
 
 
 //for vector 3 input box
-void vector3f(const std::string& parentid, const std::vector<std::string>& labels, glm::vec3& values, float onclickvalue = 0.0f) {
-
+void vector3f(const std::string& parentid, const std::vector<const char*>& labels, glm::vec3& values, float onclickvalue = 0.0f) {
 	for (int i = 0; i < 3; i++) {
 		ui::Label(labels[i]);
 
-		std::string id = parentid + labels[i] + std::to_string(i);
-		ui::FloatInputBox(id, values[i], onclickvalue);
+		std::string id = parentid + labels[i];
+		ui::FloatInputBox(id.c_str(), values[i], onclickvalue);
 	}
 }
 
-void vector4f(const std::string& parentid, const std::vector<std::string>& labels, glm::vec4& values, float onclickvalue = 0.0f) {
+void vector4f(const std::string& parentid, const std::vector<const char*>& labels, glm::vec4& values, float onclickvalue = 0.0f) {
 	for (int i = 0; i < 4; i++) {
 		ui::Label(labels[i]);
 
-		std::string id = parentid + labels[i] + std::to_string(i);
-		ui::FloatInputBox(id, values[i], onclickvalue);
+		std::string id = parentid + labels[i];
+		ui::FloatInputBox(id.c_str(), values[i], onclickvalue);
 	}
 }
 
@@ -162,7 +224,7 @@ void EditorLayer::SelectEntity() {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	ui::activeinputbox.id = "";
+	ui::activeelementid = 0;
 }
 
 
@@ -190,6 +252,11 @@ bool EditorLayer::OnEvent(Event& e) {
 	else if (ke->mod == GLFW_MOD_CONTROL && ke->key == KEY_R) {
 		s_EntityEditingMode = EntityEditingMode::ROTATE;
 		camera_locked = true;
+		return true;
+	}
+	else if (ke->mod == GLFW_MOD_CONTROL && ke->key == KEY_O) {
+		showobjectselectionscene = !showobjectselectionscene;
+		Application::captureshadowmap = true;
 		return true;
 	}
 	else if (ke->mod == GLFW_MOD_CONTROL && ke->key == KEY_C) {
@@ -256,6 +323,7 @@ bool EditorLayer::OnEvent(Event& e) {
 	return false;
 }
 
+
 void EditorLayer::imguizmos() {
 	// for rendering imguizmo
 
@@ -265,7 +333,6 @@ void EditorLayer::imguizmos() {
 
 		ImGui::Begin("gizmos", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground);
 		ImGuizmo::BeginFrame();
-		//ImGuizmo::SetOrthographic(false);
 		ImGuizmo::SetDrawlist();
 
 		float width = ImGui::GetIO().DisplaySize.x;
@@ -278,26 +345,37 @@ void EditorLayer::imguizmos() {
 		auto& ctc = cameraentity->GetComponent<TransformComponent>();
 		glm::mat4 cameraprojection;
 
-		if (cameracp.cameratype == CameraType::Orthographic)
-			cameraprojection = cameracp.camerao.viewprojection;
-		else
-			cameraprojection = cameracp.camerap.viewprojection;
+		auto parententity = selectedentity->GetComponent<RelationshipComponent>().parentEntity;
+		glm::mat4 parentworld = glm::mat4(1.0f);
 
+		if (parententity) {
+			parentworld = parententity->GetComponent<TransformComponent>().worldtransform;
+		}
+
+		if (cameracp.cameratype == CameraType::Orthographic) {
+			cameraprojection = cameracp.camerao.viewprojection;
+			ImGuizmo::SetOrthographic(true);
+		}
+		else {
+			cameraprojection = cameracp.camerap.viewprojection;
+			ImGuizmo::SetOrthographic(false);
+		}
 
 		glm::mat4 cameraview = glm::mat4(1.0f);
 
 		if (cameracp.cameratype == CameraType::Orthographic) {
-			cameraview = glm::inverse(ctc.getmatrix());
+			cameraview = glm::inverse(ctc.worldtransform);
 		}
 		else if (cameracp.cameratype == CameraType::Perspective) {
-			cameraview = glm::lookAt(ctc.position, ctc.position + Scene::cameraorientation, glm::vec3(0.0f, 1.0f, 0.0f));
+			glm::vec3 pos = glm::vec3(ctc.worldtransform * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+			cameraview = glm::lookAt(pos, pos + Scene::cameraorientation, glm::vec3(0.0f, 1.0f, 0.0f));
 		}
 
 		auto& tc = selectedentity->GetComponent<TransformComponent>();
 		glm::mat4 transform = glm::mat4(1.0f);
 
 		ImGuizmo::OPERATION op;
-		
+
 		if (s_GizmoMode == ObjectMode) {
 			if (s_EntityEditingMode == EntityEditingMode::TRANSLATE)
 				op = ImGuizmo::OPERATION::TRANSLATE;
@@ -306,44 +384,58 @@ void EditorLayer::imguizmos() {
 			else if (s_EntityEditingMode == EntityEditingMode::ROTATE)
 				op = ImGuizmo::OPERATION::ROTATE;
 
-			transform = tc.worldtransform * tc.getmatrix();
+			// Use only worldtransform (no * tc.getmatrix())
+			transform = tc.worldtransform;
 		}
 		else if (s_GizmoMode == ColliderMode) {
 			op = ImGuizmo::OPERATION::SCALE;
 
 			auto ttc = selectedentity->GetComponent<TransformComponent>();
 			auto& pc = selectedentity->GetComponent<PhysicsComponent>();
+			
 			ttc.scale = pc.BoxHalfExtents * 2.0f;
 
-			transform = ttc.worldtransform * ttc.getmatrix();
+			// Use only worldtransform (no * tc.getmatrix())
+			transform = parentworld * ttc.getmatrix();
 		}
 
 		ImGuizmo::Manipulate(glm::value_ptr(cameraview), glm::value_ptr(cameraprojection), op, ImGuizmo::LOCAL, glm::value_ptr(transform));
-		
+
 		if (ImGuizmo::IsUsing()) {
+			Application::captureshadowmap = true;
 			was_mousepressed = true;
 
-			transform = glm::inverse(tc.worldtransform) * transform;
+			Application::GetInstance().s_serializer.m_scene->UpdateLightStatus(tc.position);
 
-			glm::vec3 position, rotation, scale;
-			Math::DecomposeTransform(transform, position, rotation, scale);
+            // transform is now the new world transform from gizmo
+            // compute new local transform: inverse(parent_world) * new_world_transform
 
-			float angle = tc.rotation.z * 180.0f / 3.14f;
-			glm::vec3 angles = rotation * 180.0f / 3.14f;
+			glm::mat4 parentworld = glm::mat4(1.0f);
+			auto parententity = selectedentity->GetComponent<RelationshipComponent>().parentEntity;
 
-			//tc.rotation.z += angle;
-			//tc.rotation = angles;
-			
-			if (s_GizmoMode == ObjectMode) {
-				tc.rotation = angles;
-				tc.position = position;
-				tc.scale = scale;
+			if (parententity) {
+				parentworld = parententity->GetComponent<TransformComponent>().worldtransform;
 			}
-			else if (s_GizmoMode == ColliderMode) {
-				auto& pc = selectedentity->GetComponent<PhysicsComponent>();
-				pc.BoxHalfExtents = scale / 2.0f;
-			}
-		}
+
+            glm::mat4 newlocal = glm::inverse(parentworld) * transform;
+
+            glm::vec3 position, rotation, scale;
+            Math::DecomposeTransform(newlocal, position, rotation, scale);
+
+            glm::vec3 angles = rotation * 180.0f / 3.14f;
+
+            if (s_GizmoMode == ObjectMode) {
+				tc.SetRotationEuler(angles);
+                tc.position = position;
+                tc.scale = scale;
+            }
+            else if (s_GizmoMode == ColliderMode) {
+                auto& pc = selectedentity->GetComponent<PhysicsComponent>();
+                pc.BoxHalfExtents = scale / 2.0f;
+            }
+
+			ui::resetInputs();
+        }
 
 		ImGui::End();
 	}
@@ -352,9 +444,13 @@ void EditorLayer::imguizmos() {
 
 void EditorLayer::Draw(float ts) {
 
+	char strid[128];
+
 	// if window resized then change framebuffer size which is used for entity selection
 
 	if (m_colorbuffer->width != Window::Width || m_colorbuffer->height != Window::Height) {
+
+
 		m_depthbuffer.reset();
 		m_colorbuffer.reset();
 
@@ -367,10 +463,10 @@ void EditorLayer::Draw(float ts) {
 	}
 
 	// handle window moving
-	ui::windowmove();
+	//ui::windowmove();
 
 	// calculate values used for ui element rendering
-	ui::calculatevalues();
+	//ui::calculatevalues();
 
 	// check mouse hovered on window
 	for (auto data : ui::windowdatas) {
@@ -385,11 +481,14 @@ void EditorLayer::Draw(float ts) {
 	// Window manager window always visible
 	windowmanagerdata.visible = true;
 
-	float ui_ortho = Window::OrthographicSize / 2;
-	
-	glm::mat4 orthomatrix = glm::ortho(-Window::Ratio * ui_ortho, Window::Ratio * ui_ortho, -ui_ortho, ui_ortho);
+	//float ui_ortho = Window::OrthographicSize / 2;
+
+	//glm::mat4 orthomatrix = glm::ortho(-ui_ortho * Window::Ratio, ui_ortho * Window::Ratio, -ui_ortho, ui_ortho);
+	glm::mat4 orthomatrix = glm::ortho(0.0f, (float)Window::Width, (float)Window::Height, 0.0f);
 
 	Renderer2D::UseShader(ShaderManager::Get("2d"));
+
+	Renderer2D::BeginScene(orthomatrix);
 
 	// Window Manager Window
 	{
@@ -424,12 +523,30 @@ void EditorLayer::Draw(float ts) {
 			skyboxwindowdata.visible = true;
 		}
 
-		if (ui::Button("Null")) {}
+        if(ui::Button("colorselect")) {
+          colorselectorwindowdata.visible = true;
+        }
+
+		if (ui::Button("cameraselector")) {
+			cameraselectorwindowdata.visible = true;
+		}
+
 
 		ui::Label("EditorCameraMoveSpeed");
 		ui::FloatInputBox("editorcameramovespeed", EditorCameraSpeed, 0.0f);
 
+		ui::Label("Uniform Ambient");
+		ui::FloatInputBox("worldambient", selectedscene->ambientscale);
+
 		ui::popstyle();
+
+		unsigned int op = selectedscene->m_physicsType;
+		ui::OptionSelector(physicsengines, op);
+		selectedscene->m_physicsType = (PhysicsType)op;
+
+		unsigned int routput = Application::s_renderoutput;
+		ui::OptionSelector(renderoutputstr, routput);
+		Application::s_renderoutput = (RenderOutput)routput;
 
 		if (ui::Button("Reorder Rendering Sequence")) {
 			selectedscene->reorder_rendering_sequence();
@@ -442,15 +559,24 @@ void EditorLayer::Draw(float ts) {
 		if (ui::Button("Save Scene")) {
 			auto app = Application::GetInstance();
 			app.s_serializer.Serialize(app.s_serializer.filepath);
+			Scene::s_msgbatch.Add(MessageType::info, "Scene Saved.", 1.0f);
 		}
 
 		ui::Separator();
 
-		std::string time = "Time : " + std::to_string(ts) + " ms";
-		ui::Label(time);
+		sprintf(strid, "Time : %f ms", ts * 1000.0f);
+		ui::Label(strid);
 		ui::End();
 
 	}
+
+
+    // color selector window
+    {
+      ui::Begin("Color Picker", colorselectorwindowdata);
+      ui::ColorPicker();
+      ui::End();
+    }
 
 
 	// Scene Hierarchy Window
@@ -460,7 +586,6 @@ void EditorLayer::Draw(float ts) {
 		auto group = selectedscene->m_registry.group<NameComponent>();
 
 		for (auto e : group) {
-			auto namec = selectedscene->m_registry.get<NameComponent>(e);
 			std::shared_ptr<Entity> entity = std::make_shared<Entity>();
 			entity->id = e;
 			entity->m_scene = selectedscene;
@@ -486,9 +611,11 @@ void EditorLayer::Draw(float ts) {
 			ui::Begin("Properties", propertieswindowdata);
 			ui::pushstyle(uistyle::row_two_block);
 
+			//auto& cachedcomponent = selectedentity->GetComponent<CachedComponents>();
 
 			// NameComponent
 			{
+
 				ui::Label("Name");
 				auto& namec = selectedentity->GetComponent<NameComponent>();
 				ui::InputBox("entityname", namec.name);
@@ -498,20 +625,24 @@ void EditorLayer::Draw(float ts) {
 
 			// TransformComponent
 			{
+
 				auto& transform = selectedentity->GetComponent<TransformComponent>();
 				// for position
 				ui::StateButton("Position", position, false);
 				ui::StateButton("(Vector3)", position, true);
 
-				if (position)
+				if (position) {
 					vector3f("entityposition", positionvaluesstring, transform.position);
 
+				}
 				// for Rotation
 				ui::StateButton("Rotation", rotation, false);
 				ui::StateButton("(Vector3)", rotation, true);
 
 				if (rotation)
 					vector3f("entityrotation", positionvaluesstring, transform.rotation);
+
+				transform.SetRotationEuler(transform.rotation);
 
 				// for scale
 				ui::StateButton("Scale", scale, false);
@@ -549,6 +680,31 @@ void EditorLayer::Draw(float ts) {
 				}
 			}
 
+			// UIFontRendererComponent
+			{
+				if (selectedentity->HasComponent<UIFontRendererComponent>()) {
+					auto& frc = selectedentity->GetComponent<UIFontRendererComponent>();
+
+					ui::Separator();
+					ui::pushstyle(uistyle::row_two_block);
+
+					ui::Label("Text");
+					ui::InputBox("fontrenderer_text", frc.text);
+
+					ui::Label("Opacity");
+					ui::FloatInputBox("fontrenderer_opacity", frc.opacity);
+
+					ui::Label("Size");
+					ui::FloatInputBox("fontrenderer_fontsize", frc.pixelsize);
+
+					ui::popstyle();
+
+					if (ui::Button("Delete UIFontRendererComponent")) {
+						selectedentity->RemoveComponent<UIFontRendererComponent>();
+					}
+				}
+			}
+
 			// SpriteRendererComponent
 			{
 				if (selectedentity->HasComponent<SpriteRendererComponent>()) {
@@ -556,7 +712,7 @@ void EditorLayer::Draw(float ts) {
 
 					ui::Separator();
 
-					std::vector<std::string> colororsubtexture = { "Color", "SubTexture" };
+					std::vector<const char*> colororsubtexture = { "Color", "SubTexture" };
 
 					spriterenderertypeindex = spc.type;
 					ui::OptionSelector(colororsubtexture, spriterenderertypeindex);
@@ -573,7 +729,9 @@ void EditorLayer::Draw(float ts) {
 					else {
 						ui::pushstyle(uistyle::row_two_block);
 
-						vector4f("subtexturecolor", colorvaluesstring, spc.color, 0.0f);
+						//vector4f("subtexturecolor", colorvaluesstring, spc.color, 0.0f);
+						ui::Label("Color");
+						ui::ColorEdit(spc.color);
 
 						ui::popstyle();
 
@@ -583,6 +741,47 @@ void EditorLayer::Draw(float ts) {
 
 					if (ui::Button("Delete SpriteRendererComponent")) {
 						selectedentity->RemoveComponent<SpriteRendererComponent>();
+					}
+				}
+			}
+
+
+			// UISpriteRendererComponent
+			{
+				if (selectedentity->HasComponent<UISpriteRendererComponent>()) {
+					auto& spc = selectedentity->GetComponent<UISpriteRendererComponent>();
+
+					ui::Separator();
+
+					std::vector<const char*> colororsubtexture = { "Color", "SubTexture" };
+
+					spriterenderertypeindex = spc.type;
+					ui::OptionSelector(colororsubtexture, spriterenderertypeindex);
+					spc.type = spriterenderertypeindex;
+
+					ui::CheckBox("Transparent", spc.transparent);
+
+					if (spc.type != 0) {
+						if (ui::Button("SubTexture")) {
+							selectedsubtexture = &spc.m_subtexture;
+						}
+					}
+
+					else {
+						ui::pushstyle(uistyle::row_two_block);
+
+						//vector4f("subtexturecolor", colorvaluesstring, spc.color, 0.0f);
+						ui::Label("Color");
+						ui::ColorEdit(spc.color);
+
+						ui::popstyle();
+
+					}
+
+
+
+					if (ui::Button("Delete UISpriteRendererComponent")) {
+						selectedentity->RemoveComponent<UISpriteRendererComponent>();
 					}
 				}
 			}
@@ -754,10 +953,10 @@ void EditorLayer::Draw(float ts) {
 					ui::pushstyle(uistyle::row_two_block);
 
 					for (unsigned int i = 0; i < agcp.animationpath.size(); i++) {
-						std::string id = "animationid" + std::to_string(i);
-						std::string pathid = "animationpath" + std::to_string(i);
-						ui::InputBox(id, agcp.animationpath[i].first);
-						ui::InputBox(pathid, agcp.animationpath[i].second);
+						sprintf(strid, "aniimationid%d", i);
+						ui::InputBox(strid, agcp.animationpath[i].first);
+						sprintf(strid, "animationpath%d", i);
+						ui::InputBox(strid, agcp.animationpath[i].second);
 					}
 
 					ui::popstyle();
@@ -798,11 +997,18 @@ void EditorLayer::Draw(float ts) {
 					ui::FloatInputBox("Velocity.x", pg.m_particleprops.velocity.x);
 					ui::Label("Velocity.y");
 					ui::FloatInputBox("Velocity.y", pg.m_particleprops.velocity.y);
+					ui::Label("Velocity.z");
+					ui::FloatInputBox("Velocity.z", pg.m_particleprops.velocity.z);
 
 					ui::Label("VelocityVariation.x");
 					ui::FloatInputBox("VelocityVariation.x", pg.m_particleprops.velocityvariation.x);
 					ui::Label("VelocityVariation.y");
 					ui::FloatInputBox("VelocityVariation.y", pg.m_particleprops.velocityvariation.y);
+					ui::Label("VelocityVariation.z");
+					ui::FloatInputBox("VelocityVariation.z", pg.m_particleprops.velocityvariation.z);
+
+					ui::Label("Gravity");
+					ui::CheckBox("ParticleGravity", pg.m_particleprops.Gravity);
 
 					ui::Label("BeginSize");
 					ui::FloatInputBox("BeginSize", pg.m_particleprops.sizebegin);
@@ -822,11 +1028,14 @@ void EditorLayer::Draw(float ts) {
 					ui::CheckBox("Active", pg.active);
 
 					ui::pushstyle(uistyle::row_two_block);
-					ui::StateButton("ColorBegin", colorbegin, true);
-					ui::StateButton("ColorEnd", colorbegin, false);
+	
+					ui::Label("ColorBegin");
+					ui::ColorEdit(pg.m_particleprops.colorbegin);
 
-					vector4f("particlecolor", colorvaluesstring, colorbegin ? pg.m_particleprops.colorbegin : pg.m_particleprops.colorend, 0.0f);
+					ui::Label("ColorEnd");
+					ui::ColorEdit(pg.m_particleprops.colorend);
 
+					
 					ui::popstyle();
 
 					if (ui::Button("Delete ParticleGeneratorComponent")) {
@@ -847,19 +1056,10 @@ void EditorLayer::Draw(float ts) {
 					ui::Label("File name");
 					ui::InputBox("3dmodelfileinput", mc.filepath);
 
-					ui::Label("Shader");
-
-					auto it = std::find(ShaderManager::s_shadernames.begin(), ShaderManager::s_shadernames.end(), mc.shadername);
-					unsigned int index = 0;
-
-					if (it != ShaderManager::s_shadernames.end()) {
-						index = std::distance(ShaderManager::s_shadernames.begin(), it);
-					}
-
-					ui::OptionSelector(ShaderManager::s_shadernames, index);
-					mc.shadername = ShaderManager::s_shadernames[index];
-
 					ui::popstyle();
+
+					ui::CheckBox("Bloom", mc.bloom);
+					ui::CheckBox("Outline", mc.outline);
 
 					if (ui::Button("Load Model")) {
 						mc.mModel = ModelManager::GetModel(mc.filepath);
@@ -873,6 +1073,7 @@ void EditorLayer::Draw(float ts) {
 
 			// LightComponent
 			{
+				HZ_PROFILE_SCOPE("LightComponent");
 				if (selectedentity->HasComponent<LightComponent>()) {
 					ui::Separator();
 
@@ -886,6 +1087,7 @@ void EditorLayer::Draw(float ts) {
 
 					if (lighttypes != lc.lighttype) {
 						lc.m_Texture.reset();
+						Application::captureshadowmap = true;
 					}
 
 					lc.lighttype = (LightType)lighttypes;
@@ -895,7 +1097,9 @@ void EditorLayer::Draw(float ts) {
 					ui::Label("Light Color");
 
 					ui::pushstyle(uistyle::row_two_block);
-					vector3f("LightComponentColor", Label_RGB, lc.color);
+					//vector3f("LightComponentColor", Label_RGB, lc.color);
+					ui::Label("LightColor");
+					ui::ColorEdit(lc.color);
 
 					if (lc.lighttype != POINT_LIGHT) {
 						ui::Separator();
@@ -951,41 +1155,80 @@ void EditorLayer::Draw(float ts) {
 
 					auto& pc = selectedentity->GetComponent<PhysicsComponent>();
 
-					static std::vector<std::string> shapetypes = {
-						"Box",
-						"Sphere",
-						"Capsule",
-						"Infinite Plane"
-					};
-
 					unsigned int index = (unsigned int)pc.ShapeType;
-					ui::Label("Shape");
+
+					static const char* shapestr = "Shape";
+
+					ui::Label(shapestr);
 					ui::OptionSelector(shapetypes, index);
 					pc.ShapeType = (PhysicsShapeType)index;
 
 
-					ui::Label("Mass");
-					ui::FloatInputBox("BulletMass", pc.Mass);
+					static const char* massstr = "Mass";
+					static const char* Bulletmass = "BulletMass";
+					static const char* halfextentstr = "Halfextent3";
+					static const char* sphereradiusstr = "Sphere Radius";
+					static const char* bulletradius = "bulletsphereradius";
+
+
+					ui::Label(massstr);
+					ui::FloatInputBox(Bulletmass, pc.Mass);
 
 					if (pc.ShapeType == PhysicsShapeType::Box || pc.ShapeType == PhysicsShapeType::Capsule) {
-						vector3f("Halfextent3", Label_XYZ, pc.BoxHalfExtents);
+						vector3f(halfextentstr, Label_XYZ, pc.BoxHalfExtents);
 					}
 
 					if (pc.ShapeType == PhysicsShapeType::Capsule || pc.ShapeType == PhysicsShapeType::Sphere) {
-						ui::Label("Sphere Radius");
-						ui::FloatInputBox("bulletsphereradius", pc.SphereRadius);
+						ui::Label(sphereradiusstr);
+						ui::FloatInputBox(bulletradius, pc.SphereRadius);
 					}
 
-					ui::Label("Restitution");
-					ui::FloatInputBox("Restitution", pc.Restitution);
+					static const char* restitutionstr = "Restutition";
+					static const char* OnlyPOsitiveSide = "OnlyPositiveSide";
 
-					ui::Label("OnlyPositiveSide");
-					ui::CheckBox("OnlyPositiveSide", pc.OnlyPositive);
+					ui::Label(restitutionstr);
+					ui::FloatInputBox(restitutionstr, pc.Restitution);
+
+					ui::Label(OnlyPOsitiveSide);
+					ui::CheckBox(OnlyPOsitiveSide, pc.OnlyPositive);
 
 					ui::popstyle();
 
+					for (unsigned int i = 0; i < 3; i++) {
+						ui::CheckBox(rotations[i], pc.Rotations[i]);
+					}
+
 					if (ui::Button("Remove Physics Component")) {
 						selectedentity->RemoveComponent<PhysicsComponent>();
+					}
+				}
+			}
+
+			// Animation3DComponent
+			{
+				if (selectedentity->HasComponent<Animation3DComponent>()) {
+
+					auto& ac = selectedentity->GetComponent<Animation3DComponent>();
+
+					unsigned int len = ac.mAnimationNames.size();
+
+					for (unsigned int i = 0; i < len; i++) {
+						bool check = ac.activeanimatioins[i];
+						ui::CheckBox(ac.mAnimationNames[i].c_str(), check);
+						if (check != ac.activeanimatioins[i]) {
+							ac.setActive(i);
+						}
+					}
+
+					if (ui::Button("Reload")) {
+						if (selectedentity->HasComponent<Model3DComponent>()) {
+							auto& mc = selectedentity->GetComponent<Model3DComponent>();
+							ac.Reload(mc.filepath, mc.mModel.get());
+						}
+					}
+
+					if (ui::Button("Remove Animation3D Component")) {
+						selectedentity->RemoveComponent<Animation3DComponent>();
 					}
 				}
 			}
@@ -994,6 +1237,7 @@ void EditorLayer::Draw(float ts) {
 
 			// for adding other components
 			{
+
 				if (!selectedentity->HasComponent<CameraComponent>()) {
 					if (ui::Button("Camera Component")) {
 						selectedentity->AddComponent<CameraComponent>();
@@ -1006,9 +1250,21 @@ void EditorLayer::Draw(float ts) {
 					}
 				}
 
+				if (!selectedentity->HasComponent<UISpriteRendererComponent>()) {
+					if (ui::Button("UISprite Component")) {
+						selectedentity->AddComponent<UISpriteRendererComponent>();
+					}
+				}
+
 				if (!selectedentity->HasComponent<FontRendererComponent>()) {
 					if (ui::Button("Fontrenderer Component")) {
 						selectedentity->AddComponent<FontRendererComponent>("", 14.0f);
+					}
+				}
+
+				if (!selectedentity->HasComponent<UIFontRendererComponent>()) {
+					if (ui::Button("UIFontRenderer Component")) {
+						selectedentity->AddComponent<UIFontRendererComponent>("", 14.0f);
 					}
 				}
 
@@ -1039,12 +1295,6 @@ void EditorLayer::Draw(float ts) {
 					}
 				}
 
-				if (!selectedentity->HasComponent<ChainShapeColliderComponent>()) {
-					if (ui::Button("ChainShapeCollider Component")) {
-						selectedentity->AddComponent<ChainShapeColliderComponent>();
-					}
-				}
-
 				if (!selectedentity->HasComponent<ParticleGeneratorComponent>()) {
 					if (ui::Button("Particle Generator Component")) {
 						selectedentity->AddComponent<ParticleGeneratorComponent>();
@@ -1060,6 +1310,7 @@ void EditorLayer::Draw(float ts) {
 				if (!selectedentity->HasComponent<LightComponent>()) {
 					if (ui::Button("LightComponent")) {
 						selectedentity->AddComponent<LightComponent>();
+						Application::captureshadowmap = true;
 					}
 				}
 
@@ -1072,6 +1323,12 @@ void EditorLayer::Draw(float ts) {
 				if (!selectedentity->HasComponent<PhysicsComponent>()) {
 					if (ui::Button("PhysicsComponent")) {
 						selectedentity->AddComponent<PhysicsComponent>();
+					}
+				}
+
+				if (!selectedentity->HasComponent<Animation3DComponent>()) {
+					if (ui::Button("Animation3DComponent")) {
+						selectedentity->AddComponent<Animation3DComponent>();
 					}
 				}
 			}
@@ -1135,7 +1392,7 @@ void EditorLayer::Draw(float ts) {
 				selectedsubtexture = &m_animation.frames[i];
 			}
 			std::string id = "animationframe" + std::to_string(i);
-			ui::FloatInputBox(id, m_animation.frametimes[i]);
+			ui::FloatInputBox(id.c_str(), m_animation.frametimes[i]);
 		}
 
 
@@ -1193,9 +1450,9 @@ void EditorLayer::Draw(float ts) {
 				Renderer2D::textures[i] = std::make_shared<Texture>(1, 1, GL_RGBA8, GL_RGBA, 0);
 			}
 			std::string number = std::to_string(i);
-			ui::Label(number);
+			ui::Label(number.c_str());
 			std::string id = "texture" + number;
-			ui::InputBox(id, Renderer2D::textures[i]->path);
+			ui::InputBox(id.c_str(), Renderer2D::textures[i]->path);
 		}
 		ui::popstyle();
 
@@ -1210,6 +1467,29 @@ void EditorLayer::Draw(float ts) {
 				}
 			}
 		}
+		ui::End();
+	}
+
+	// camera selector
+	{
+		ui::Begin("CameraSelector", cameraselectorwindowdata);
+
+		auto view = selectedscene->m_registry.view<CameraComponent, NameComponent>();
+		for (auto e : view) {
+
+			auto& nc = view.get<NameComponent>(e);
+			if (ui::Button(nc.name.c_str())) {
+
+				for (auto e2 : view) {
+					auto& cc = view.get<CameraComponent>(e2);
+					cc.Primary = false;
+				}
+
+				auto& cc = view.get<CameraComponent>(e);
+				cc.Primary = true;
+			}
+ 		}
+
 		ui::End();
 	}
 
@@ -1235,7 +1515,7 @@ void EditorLayer::Draw(float ts) {
 			entity->id = e;
 			entity->m_scene = m_EntityRegistrar.m_scene;
 
-			if (ui::Button(nc.name)) {
+			if (ui::Button(nc.name.c_str())) {
 				m_EntityRegistrar.AddEntityIntoScene(selectedscene, entity);
 			}
 
@@ -1285,9 +1565,13 @@ void EditorLayer::Draw(float ts) {
 
 	}
 
+
+	ui::quadindexes.push_back(Renderer2D::state.indicespointer / 6);
+	ui::cliprects.push_back(glm::vec4(0.0f, 0.0f, Window::Width, Window::Height));
+
+
 	// Other UI Stuff
 	{
-		Renderer2D::BeginScene(orthomatrix);
 		// testing of image button
 
 		if (selectedentity) {
@@ -1306,10 +1590,41 @@ void EditorLayer::Draw(float ts) {
 				}
 			}
 		}
-		Renderer2D::EndScene();
 
 	}
 
+	unsigned int len = ui::quadindexes.size();
+	for (unsigned int i = len; i < 16; i++) {
+		ui::quadindexes.push_back(10000);
+		ui::cliprects.push_back(glm::vec4(0.0f));
+	}
+
+	auto shader = ShaderManager::Get("2d");
+
+	char buffer[128];
+	for (unsigned int i = 0; i < 16; i++) {
+		sprintf(buffer, "quadindexes[%d]", i);
+		shader->SetInt(buffer, ui::quadindexes[i]);
+		sprintf(buffer, "clips[%d]", i);
+		shader->SetVec4(buffer, ui::cliprects[i]);
+	}
+
+	shader->SetInt("isui", true);
+
+	Renderer2D::EndScene();
+
+	shader->SetInt("isui", false);
+
+	ui::quadindexes.clear();
+	ui::cliprects.clear();
+
+
+
+
+	if (deleteentity->m_scene) {
+		selectedscene->DestroyEntity(deleteentity);
+		deleteentity->m_scene = nullptr;
+	}
 
 
 	// Draw Console 
@@ -1320,6 +1635,7 @@ void EditorLayer::Draw(float ts) {
 	}
 
 
+	/*
 	// for Entity selection
 	{
 		m_entitybuffer.Bind();
@@ -1374,6 +1690,9 @@ void EditorLayer::Draw(float ts) {
 
 	}
 
+	*/
+
+	
 	if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_1)) {
 		was_mousepressed = true;
 		ui::was_mouse_pressed = true;
@@ -1459,9 +1778,39 @@ void EditorLayer::CopyEntity() {
 			ParticleGeneratorComponent pgc = selectedentity->GetComponent<ParticleGeneratorComponent>();
 			s_CopiedEntity.pgc = pgc;
 		}
+
+		// copy model3dcomponent
+		s_CopiedEntity.m3c.reset();
+		if (selectedentity->HasComponent<Model3DComponent>()) {
+			Model3DComponent mc = selectedentity->GetComponent<Model3DComponent>();
+			s_CopiedEntity.m3c = mc;
+
+		}
+
+		// copy lightcomponent
+		s_CopiedEntity.lc.reset();
+		if (selectedentity->HasComponent<LightComponent>()) {
+			LightComponent lc = selectedentity->GetComponent<LightComponent>();
+			s_CopiedEntity.lc = lc;
+		}
+
+		// copy physicscomponent
+		s_CopiedEntity.pc.reset();
+		if (selectedentity->HasComponent<PhysicsComponent>()) {
+			PhysicsComponent pc = selectedentity->GetComponent<PhysicsComponent>();
+
+			s_CopiedEntity.pc = pc;
+
+		}
+
+
+		// copy animation 3d component
+		s_CopiedEntity.a3c.reset();
+		if (selectedentity->HasComponent<Animation3DComponent>()) {
+			Animation3DComponent a3c = selectedentity->GetComponent<Animation3DComponent>();
+			s_CopiedEntity.a3c = a3c;
+		}
 	}
-
-
 }
 
 void EditorLayer::PasteEntity() {
@@ -1473,6 +1822,7 @@ void EditorLayer::PasteEntity() {
 		tc.position = tcopy.position;
 		tc.rotation = tcopy.rotation;
 		tc.scale = tcopy.scale;
+		tc.SetRotationEuler(tc.rotation);
 
 
 		// add camera component
@@ -1539,6 +1889,41 @@ void EditorLayer::PasteEntity() {
 			pgc.time = pgccopy.time;
 			pgc.count = pgccopy.count;
 			pgc.active = pgccopy.active;
+		}
+
+		// add model3dcomponent
+
+		if (s_CopiedEntity.m3c.has_value()) {
+			Model3DComponent m3c = s_CopiedEntity.m3c.value();
+			Model3DComponent& m = entity->AddComponent<Model3DComponent>();
+			m.filepath = m3c.filepath;
+			m.mModel = ModelManager::GetModel(m.filepath);
+		}
+
+		// add lightcomponent
+		if (s_CopiedEntity.lc.has_value()) {
+			LightComponent lc = s_CopiedEntity.lc.value();
+			LightComponent& l = entity->AddComponent<LightComponent>();
+			l = lc;
+			l.m_Texture = nullptr;
+			l.Update();
+		}
+
+		// add physicscomponent
+		if (s_CopiedEntity.pc.has_value()) {
+			PhysicsComponent pc = s_CopiedEntity.pc.value();
+			PhysicsComponent& p = entity->AddComponent<PhysicsComponent>();
+			p = pc;
+		}
+
+		// add animation3dcomponent
+		if (s_CopiedEntity.a3c.has_value()) {
+			Animation3DComponent a3c = s_CopiedEntity.a3c.value();
+			Animation3DComponent& a = entity->AddComponent<Animation3DComponent>();
+			a = a3c;
+
+			Model3DComponent mc = s_CopiedEntity.m3c.value();
+			a.Reload(mc.filepath, mc.mModel.get());
 		}
 	}
 }

@@ -1,0 +1,151 @@
+Scene: Undefined
+PhysicsType: 1
+texture3:
+  path: res/crosshair.png
+texture4:
+  path: res/particles.png
+texture13:
+  path: res/EditorLayerIcons.png
+texture15:
+  path: res/icons.png
+Entities:
+  - Entity: 8
+    NameComponent:
+      name: character
+      active: true
+    TransformComponent:
+      position: [-3.80580425, 2.01592636, 12.1998396]
+      rotation: [180.082672, -90.0013885, -180.083908]
+      scale: [0.999981105, 0.999999881, 0.999981165]
+    Model3DComponent:
+      filepath: res/character.glb
+      shadername: ""
+      bloom: false
+    Animation3DComponent:
+      {}
+    ChildEntities:
+      []
+  - Entity: 7
+    NameComponent:
+      name: kitchen_cupboard
+      active: true
+    TransformComponent:
+      position: [6.37503004, 2.09907198, 7.42503452]
+      rotation: [0.0826233774, -90.0456467, -0.0838646814]
+      scale: [0.999957502, 0.999999762, 0.999995112]
+    Model3DComponent:
+      filepath: res/kitchen_cupboard.obj
+      shadername: ""
+      bloom: false
+    ChildEntities:
+      []
+  - Entity: 6
+    NameComponent:
+      name: fridger
+      active: true
+    TransformComponent:
+      position: [2.31986976, 2.14268661, 7.64039183]
+      rotation: [0, -90, 0]
+      scale: [0.999981582, 1, 0.999981582]
+    Model3DComponent:
+      filepath: res/fridger.obj
+      shadername: ""
+      bloom: false
+    ChildEntities:
+      []
+  - Entity: 5
+    NameComponent:
+      name: table
+      active: true
+    TransformComponent:
+      position: [-0.815945864, 1.83395028, 7.48844814]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+    Model3DComponent:
+      filepath: res/table.obj
+      shadername: ""
+      bloom: false
+    ChildEntities:
+      []
+  - Entity: 4
+    NameComponent:
+      name: sofa
+      active: true
+    TransformComponent:
+      position: [-5.02346039, 2.04859734, 7.83337259]
+      rotation: [-180.008606, -90.0013885, 180.007385]
+      scale: [0.999981761, 0.999999762, 0.999995172]
+    Model3DComponent:
+      filepath: res/sofa.obj
+      shadername: ""
+      bloom: false
+    ChildEntities:
+      []
+  - Entity: 3
+    NameComponent:
+      name: Camera
+      active: true
+    TransformComponent:
+      position: [0.366359234, 10.5512514, 22.8532696]
+      rotation: [-34.5818939, 0.477464944, 0]
+      scale: [1, 1, 1]
+    CameraComponent:
+      min_x: 0
+      max_x: 0
+      min_y: 0
+      max_y: 0
+      camerao:
+        near: 0
+        far: 20
+        size: 0
+      camerap:
+        angle: 45
+        near: 0.100000001
+        far: 100
+      cameratype: 1
+      primary: true
+    ChildEntities:
+      []
+  - Entity: 2
+    NameComponent:
+      name: Base
+      active: true
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 90, 0]
+      scale: [1, 1, 1]
+    Model3DComponent:
+      filepath: res/base.obj
+      shadername: ""
+      bloom: false
+    ChildEntities:
+      []
+  - Entity: 1
+    NameComponent:
+      name: Direction_Light
+      active: true
+    TransformComponent:
+      position: [0.192427635, 17.888176, 38.014328]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+    LightComponent:
+      Type: 0
+      Angle: 0
+      Color: [0.986242592, 0.98725462, 0.989655197]
+      Direction: [0, -0.5, -0.300000012]
+    ChildEntities:
+      []
+  - Entity: 0
+    NameComponent:
+      name: door
+      active: true
+    TransformComponent:
+      position: [-6.86171722, 1.99161029, 12.0977287]
+      rotation: [180.091263, 90.0013885, 180.091263]
+      scale: [0.999953866, 1, 0.999953866]
+    Model3DComponent:
+      filepath: res/door.obj
+      shadername: ""
+      bloom: false
+    ChildEntities:
+      []

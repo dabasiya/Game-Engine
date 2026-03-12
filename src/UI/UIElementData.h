@@ -33,7 +33,7 @@ struct windowdata {
 	// z coordinate for if window selected it appear first
 	float z = 0.0f;
 
-	unsigned int mouse_lock_x, mouse_lock_y;
+	double mouse_lock_x, mouse_lock_y;
 
 	bool mouse_locked = false;
 

@@ -9,6 +9,7 @@ struct Shader {
 
 	Shader(const char* vertexpath, const char* fragmentpath);
 	Shader(const char* vertexpath, const char* geometrypath, const char* fragmentpath);
+	Shader(const char* computeshaderpath);
 
 	~Shader();
 
@@ -25,7 +26,8 @@ struct Shader {
 	void SetMat4(const char* name, const glm::mat4& value);
 	void SetVec3(const char* name, const glm::vec3& value);
 	void SetInt(const char* name, int value);
+	void SetVec4(const char* name, const glm::vec4& value);
 	void SetFloat(const char* name, float value);
 	void SetIntArray(const char* name, int* values, unsigned int count);
-
+	int GetUniformBlockIndex(const char* name);
 };

@@ -5,7 +5,11 @@
 SoundManager::SoundManager() {
 	FMOD::System_Create(&m_system);
 	m_system->init(512, FMOD_INIT_NORMAL, nullptr);
+}
 
+SoundManager* SoundManager::GetInstance() {
+	static SoundManager s_soundmanager;
+	return &s_soundmanager;
 }
 
 SoundManager::~SoundManager() {
@@ -39,9 +43,7 @@ void SoundManager::PlayAudio(const std::string& filename, AudioType audiotype) {
 		m_sounds[filename] = t_sound;
 	}
 	else {
-		m_channels[filename]->isPlaying(&isplaying);
-		if (!isplaying)
-			m_system->playSound(m_sounds[filename], nullptr, false, &m_channels[filename]);
+		m_system->playSound(m_sounds[filename], nullptr, false, &m_channels[filename]);
 	}
 }
 

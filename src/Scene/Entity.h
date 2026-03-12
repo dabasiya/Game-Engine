@@ -37,6 +37,7 @@ struct Entity : public std::enable_shared_from_this<Entity> {
 
     template<typename T>
     void RemoveComponent() {
+        std::cout << "component removed" << std::endl;
         m_scene->m_registry.remove<T>(id);
     }
 

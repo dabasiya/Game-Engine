@@ -21,18 +21,20 @@ struct Character {
 
 struct FontRenderer {
 
+	unsigned int textureindex;
+
 	FontRenderer(unsigned int fontsize, const std::string& path, unsigned int textureid);
 	~FontRenderer();
 
 
 	// for gl positions
-	void PrintString(std::string text, float x, float y, float scale, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
-	void PrintString(std::string text, float x, float y, float z, float scale, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
+	void PrintString(const char* text, float x, float y, float scale, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
+	void PrintString(const char* text, float x, float y, float z, float scale, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
 	// for window positions
-	void PrintString(std::string text, int x, int y, int scale, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
-	void PrintString(std::string text, int x, int y, float z, int scale, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
+	void PrintString(const char* text, int x, int y, int scale, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
+	void PrintString(const char* text, int x, int y, float z, int scale, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
 
-	void PrintStringui(std::string text, float x, float y, float z, float scale, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
+	void PrintStringui(const char* text, float x, float y, float z, float scale, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f }, float xbegin = false);
 
 
 	// deallocate memory

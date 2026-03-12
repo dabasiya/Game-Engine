@@ -19,4 +19,5 @@ struct FrameBuffer {
 	void Unbind();
 	void Delete();
 	void CheckError();
+	void Clear();
 };

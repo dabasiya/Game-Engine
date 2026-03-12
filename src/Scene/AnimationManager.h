@@ -35,4 +35,6 @@ struct AnimationManager {
 	static void AddOperation(AnimationOperation& op);
 	static void Update(float ts);
 	static void RemoveOperation(unsigned int index);
+
+	static void RemoveOperation(std::shared_ptr<Entity> e);
 };

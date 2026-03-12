@@ -7,11 +7,12 @@
 
 struct ParticleProps {
 	glm::vec3 position;
-	glm::vec2 velocity = { 0.0f, 0.0f }, velocityvariation = { 0.1f, 0.1f };
+	glm::vec3 velocity = { 0.0f, 0.0f, 0.0f }, velocityvariation = { 0.1f, 0.1f, 0.1f };
 	glm::vec4 colorbegin = glm::vec4(1.0f), colorend = glm::vec4(1.0f);
 	float sizevariation = 0.0f;
 	float sizebegin = 1.0f, sizeend = 0.2f;
 	float lifetime = 1.0f;
+	bool Gravity = false;
 	SubTexture m_subtexture;
 	bool isimage = false;
 	bool generate_from_area = false;
@@ -21,10 +22,11 @@ struct ParticleProps {
 
 struct Particle {
 	glm::vec3 position;
-	glm::vec2 velocity;
+	glm::vec3 velocity;
 	glm::vec4 colorbegin, colorend;
 	SubTexture m_subtexture;
 	bool isimage = false;
+	bool Gravity = false;
 	float rotation = 0.0f;
 	float sizebegin, sizeend;
 	float lifetime = 1.0f;
@@ -45,4 +47,5 @@ struct ParticleSystem {
 	std::vector<Particle> m_particlepool;
 	uint32_t m_poolindex = 999;
 
+	static float yrotation;
 };

@@ -1,0 +1,45 @@
+#version 430
+
+layout (local_size_x = 16, local_size_y = 16) in;
+
+layout (binding = 0) uniform sampler2D srcImage;
+layout (binding = 1, r16f) uniform writeonly image2D dstImage;
+
+uniform int radius;
+
+const int HORIZONTAL = 0;
+const int VERTICAL = 1;
+
+uniform int blurtype;
+
+void main() {
+	
+	ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+	ivec2 size = textureSize(srcImage, 0);
+
+	if(coord.x >= size.x || coord.y >= size.y)
+		return;
+
+	
+	float color = 0.0;
+	float total = 0.0;
+
+	for(int i = -radius; i <= radius; i++) {
+
+		if(blurtype == VERTICAL) {
+			int sampleY = clamp(coord.y + i, 0, size.y - 1);
+			vec4 samples = texelFetch(srcImage, ivec2(coord.x, sampleY), 0);
+			total += 1.0;
+			color += samples.r;
+		}
+
+		else if(blurtype == HORIZONTAL) {
+			int sampleX = clamp(coord.x + i, 0, size.x - 1);
+			vec4 samples = texelFetch(srcImage, ivec2(sampleX, coord.y), 0);
+			total += 1.0;
+			color += samples.r;
+		}
+	}
+	color /= total;
+	imageStore(dstImage, coord, vec4(color, 0.0, 0.0, 1.0));
+}

@@ -27,7 +27,7 @@ void SlideBar::Render() {
 
 	std::string output = text + " : " + std::to_string(value);
 
-	ui::fr->PrintString(output, x - Window::Ratio * 0.5f, y, 80.0f);
+	ui::fr->PrintString(output.c_str(), x - Window::Ratio * 0.5f, y, 80.0f);
 
 	height = (30.0f / Window::Height);
 	width = (800.0f / Window::Width) * Window::Ratio;

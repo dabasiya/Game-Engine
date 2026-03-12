@@ -8,11 +8,24 @@ in float texindex;
 
 uniform sampler2D tex[16];
 
+uniform bool isui;
+
+flat in vec4 cliprect;
+in vec2 pos;
+
 
 void main() {
      int tindex = int(texindex);
      vec4 fragc = color * texture(tex[tindex], texcoords);
-     if(fragc.a < 0.1)
-	    discard;
-     fragcolor = fragc;
+     
+
+     if(isui) {
+
+        if((pos.x > cliprect.x && pos.y > cliprect.y) && (pos.x < cliprect.z && pos.y < cliprect.w))
+            fragcolor = fragc;
+        else 
+            discard;
+    }
+
+    fragcolor = fragc;
 }

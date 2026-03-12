@@ -11,7 +11,7 @@
 #include <Scene/Components.h>
 
 EntityRegistrar::EntityRegistrar() {
-	m_scene = std::make_shared<Scene>(Scene());
+	m_scene = std::make_shared<Scene>();
 	Load();
 }
 

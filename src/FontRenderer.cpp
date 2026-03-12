@@ -9,7 +9,7 @@
 
 
 FontRenderer::FontRenderer(unsigned int fontsize, const std::string& path, unsigned int textureid)
-	: fontsize(fontsize)
+	: fontsize(fontsize), textureindex(textureid)
 {
 	FT_Init_FreeType(&ft);
 
@@ -43,7 +43,7 @@ FontRenderer::FontRenderer(unsigned int fontsize, const std::string& path, unsig
 	height = fontsize;
 
 
-	fonttexture = std::make_shared<Texture>(width, height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+	fonttexture = std::make_shared<Texture>(width, height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, false);
 
 	for (auto& ch : characters) {
 
@@ -55,9 +55,9 @@ FontRenderer::FontRenderer(unsigned int fontsize, const std::string& path, unsig
 
 		for (unsigned i = 0; i < size; i += 4) {
 			unsigned int index = (i / 4);
-			charbuffer[i] = face->glyph->bitmap.buffer[index];
-			charbuffer[i + 1] = face->glyph->bitmap.buffer[index];
-			charbuffer[i + 2] = face->glyph->bitmap.buffer[index];
+			charbuffer[i] = 255;
+			charbuffer[i + 1] = 255;
+			charbuffer[i + 2] = 255;
 			charbuffer[i + 3] = face->glyph->bitmap.buffer[index];
 		}
 
@@ -74,49 +74,56 @@ FontRenderer::FontRenderer(unsigned int fontsize, const std::string& path, unsig
 	}
 }
 
-void FontRenderer::PrintStringui(std::string text, float x, float y, float z, float scale, const glm::vec4& color) {
+void FontRenderer::PrintStringui(const char* text, float x, float y, float z, float scale, const glm::vec4& color, float xbegin) {
 	float StringWidth = 0;
 	float StringHeight = 0;
 
-	for (int i = 0; i < text.length(); i++) {
+	float texlen = strlen(text);
+
+	for (int i = 0; i < texlen; i++) {
 		StringWidth += ((float)(characters[text[i]].advance >> 6) / fontsize) * scale;
 	}
 
-	StringWidth = ((StringWidth / Window::Width) * Window::OrthographicSize * Window::Ratio);
+	if (!xbegin) {
+		x -= StringWidth / 2;
+	}
+	y += scale / 2;
 
-	x -= StringWidth / 2;
-	y -= (scale / (2 * Window::Height)) * Window::OrthographicSize;
+	//float half = scale / 2;
 
-	float half = (scale / (2 * Window::Height)) * Window::OrthographicSize;
+	for (int i = 0; i < texlen; i++) {
 
-	for (int i = 0; i < text.length(); i++) {
+		auto character = characters[text[i]];
 
-		float sizex = ((float)characters[text[i]].size.x / fontsize) * scale;
-		float sizey = ((float)characters[text[i]].size.y / fontsize) * scale;
-		float advx = ((float)(characters[text[i]].advance >> 6) / fontsize) * scale;
 
-		float brx = ((float)characters[text[i]].bearing.x / fontsize) * scale;
-		float bry = ((float)characters[text[i]].bearing.y / fontsize) * scale;
+		float sizex = ((float)character.size.x / fontsize) * scale;
+		float sizey = ((float)character.size.y / fontsize) * scale;
+		float advx = ((float)(character.advance >> 6) / fontsize) * scale;
 
-		float xpos = x + ((brx / (Window::Width)) * Window::Ratio * Window::OrthographicSize);
+		float brx = ((float)character.bearing.x / fontsize) * scale;
+		float bry = ((float)character.bearing.y / fontsize) * scale;
+
+		float xpos = x + brx;
 		//    float ypos = y - ((sizey - bry) / Window::Height) * Window::OrthographicSize;
-		float ypos = y + ((bry) / Window::Height) * Window::OrthographicSize;
+		float ypos = y - (bry - sizey);
 
-		float w = (sizex / Window::Width) * Window::Ratio * Window::OrthographicSize;
-		float h = (sizey / Window::Height) * Window::OrthographicSize;
+		float w = sizex;
+		float h = sizey;
 
 		// ypos -= (half/2);
 
-		Renderer2D::DrawQuad({ xpos, ypos, z }, { w, h }, chartextures[text[i]], color, { 0.5f, -0.5f });
-		x += (advx / Window::Width) * Window::Ratio * Window::OrthographicSize;
+		Renderer2D::DrawQuad({ xpos, ypos, z }, { w, -h }, chartextures[text[i]], color, { 0.5f, 0.5f });
+		x += advx;
 	}
 }
 
-void FontRenderer::PrintString(std::string text, float x, float y, float z, float scale, const glm::vec4& color) {
+void FontRenderer::PrintString(const char* text, float x, float y, float z, float scale, const glm::vec4& color) {
 	float StringWidth = 0;
 	float StringHeight = 0;
 
-	for (int i = 0; i < text.length(); i++) {
+	unsigned int len = strlen(text);
+
+	for (int i = 0; i < len; i++) {
 		StringWidth += ((float)(characters[text[i]].advance >> 6) / fontsize) * scale;
 	}
 
@@ -127,7 +134,7 @@ void FontRenderer::PrintString(std::string text, float x, float y, float z, floa
 
 	float half = (scale / (2 * Window::Height));
 
-	for (int i = 0; i < text.length(); i++) {
+	for (int i = 0; i < len; i++) {
 
 		float sizex = ((float)characters[text[i]].size.x / fontsize) * scale;
 		float sizey = ((float)characters[text[i]].size.y / fontsize) * scale;
@@ -153,7 +160,7 @@ void FontRenderer::PrintString(std::string text, float x, float y, float z, floa
 
 
 
-void FontRenderer::PrintString(std::string text, float x, float y, float scale, const glm::vec4& color) {
+void FontRenderer::PrintString(const char* text, float x, float y, float scale, const glm::vec4& color) {
 	PrintString(text, x, y, 0.0f, scale, color);
 }
 
@@ -161,15 +168,16 @@ void FontRenderer::PrintString(std::string text, float x, float y, float scale, 
 // ! Upper commented function removed in future
 // and this function have to optimize
 
-void FontRenderer::PrintString(std::string text, int x, int y, float z, int scale, const glm::vec4& color) {
+void FontRenderer::PrintString(const char* text, int x, int y, float z, int scale, const glm::vec4& color) {
 
 	float xp = ((float)x / Window::Width) * Window::Ratio * Window::OrthographicSize;
 	xp = xp - ((Window::OrthographicSize / 2) * Window::Ratio);
 	float yp = ((float)y / Window::Height) * Window::OrthographicSize;
 	yp = 0 - (yp - (Window::OrthographicSize / 2));
 
+	unsigned int len = strlen(text);
 
-	for (int i = 0; i < text.length(); i++) {
+	for (int i = 0; i < len; i++) {
 
 		float sizex = ((float)characters[text[i]].size.x / fontsize) * scale;
 		float sizey = ((float)characters[text[i]].size.y / fontsize) * scale;
@@ -190,7 +198,7 @@ void FontRenderer::PrintString(std::string text, int x, int y, float z, int scal
 	}
 }
 
-void FontRenderer::PrintString(std::string text, int x, int y, int scale, const glm::vec4& color) {
+void FontRenderer::PrintString(const char* text, int x, int y, int scale, const glm::vec4& color) {
 	PrintString(text, x, y, 0.0f, scale, color);
 }
 

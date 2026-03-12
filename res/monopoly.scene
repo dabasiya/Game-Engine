@@ -1,4 +1,5 @@
 Scene: Undefined
+PhysicsType: 0
 texture3:
   path: res/spritesheet.png
 texture4:

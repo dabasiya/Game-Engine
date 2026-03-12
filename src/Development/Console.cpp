@@ -12,6 +12,9 @@ std::string NewScenePath;
 
 bool Console::OnEvent(Event& e) {
 
+	uint32_t hashid = ui::HashString("console_command_box");
+	InputState& state = ui::uiInputStates[hashid];
+
 	if (e.is(Event_Type::Key_Pressed)) {
 		KeyPressedEvent* ke = (KeyPressedEvent*)&e;
 
@@ -19,21 +22,22 @@ bool Console::OnEvent(Event& e) {
 		int cy = y + time * 26;
 
 		if (cy + 26 > Window::Height) {
-			y -= (cy + 26 - Window::Height);
+			y += (cy + 26 - Window::Height);
 		}
 
-		if (ke->key == GLFW_KEY_ENTER && ui::activeinputbox.text.length() > 0) {
-			CommandStrings.push_back(ui::activeinputbox.text);
+		
+		if (ke->key == GLFW_KEY_ENTER && state.text.length() > 0) {
+			CommandStrings.push_back(state.text);
 
-			if (ui::activeinputbox.text == "clear") {
+			if (state.text == "clear") {
 				ClearConsole();
 			}
 
 			// check size
-			uint32_t size = ui::activeinputbox.text.size();
+			uint32_t size = state.text.size();
 
 			if (size > 0) {
-				std::stringstream ss(ui::activeinputbox.text);
+				std::stringstream ss(state.text);
 
 				std::string command;
 				ss >> command;
@@ -58,7 +62,7 @@ bool Console::OnEvent(Event& e) {
                                 }
 			}
 
-			ui::activeinputbox.text = "";
+			state.text = "";
 
 			return true;
 		}
@@ -79,18 +83,26 @@ bool Console::OnEvent(Event& e) {
 		int cy = y + time * 26;
 
 		if (cy + 26 > Window::Height) {
-			y -= (cy + 26 - Window::Height);
+			y += (cy + 26 - Window::Height);
 		}
 
 		if ((Window::Window_Mousex > 0 && Window::Window_Mousex < Window::Width) && (Window::Window_Mousey > cy && Window::Window_Mousey < cy + 26)) {
-			ui::activeinputbox = { "console_command_box", inputtype::TEXT, "" };
+			state.active = true;
+			state.type = InputType::TEXT;
+			ui::activeelementid = hashid;
 			return true;
 		}
+
+		if (ui::activeelementid != hashid)
+			state.active = false;
 	}
 	return false;
 }
 
 void Console::Draw() {
+
+	uint32_t hashid = ui::HashString("console_command_box");
+	InputState& state = ui::uiInputStates[hashid];
 	if (visible) {
 
 		// if new scene loaded then load new scene in main scene
@@ -100,37 +112,35 @@ void Console::Draw() {
 		}
 
 
-		float width = Window::OrthographicSize * 0.75f * Window::Ratio;
+		float width = Window::Width;
 
 		// because width = window::orthographicsize * window::ratio
-		float xpos = ((float)x / Window::Width) * width;
-		xpos -= (width) / 2;
+		float xpos = x;
 
-		float ypos = ((float)y / Window::Height) * Window::OrthographicSize;
-		ypos = -(ypos - Window::OrthographicSize / 2);
+		float ypos = y;
 
 		int command_1_line_size = 26;
 		int font_size = 20;
-		float yoffset = ((float)command_1_line_size / Window::Height) * Window::OrthographicSize;
+		float yoffset = command_1_line_size;
 
 		int yintoffset = 0;
 
-		unsigned int fontoffsetx = Window::Width * 0.125f + 5;
+		unsigned int fontoffsetx = 10;
 		for (auto str : CommandStrings) {
 
 			int yintpos = y + yintoffset;
 
-			Renderer2D::DrawQuad({ xpos, ypos, 1.0f }, { width, yoffset }, BackGround_Color, { 0.5f, -0.5f });
-			ui::fr->PrintString(str, fontoffsetx, yintpos + 23, 1.0f, font_size);
-
-			ypos -= yoffset;
+			Renderer2D::DrawQuad({ xpos, ypos, 1.0f }, { width, -yoffset }, BackGround_Color, { 0.5f, -0.5f });
+			ui::fr->PrintStringui(str.c_str(), fontoffsetx, yintpos + font_size/2, 1.0f, font_size, glm::vec4(1.0f), true);
+			
+			ypos += yoffset;
 			yintoffset += command_1_line_size;
 
 		}
 
-		Renderer2D::DrawQuad({ xpos, ypos, 1.0f }, { width, yoffset }, Active_Line_Color, { 0.5f, -0.5f });
-		if (ui::activeinputbox.id == "console_command_box")
-			ui::fr->PrintString(ui::activeinputbox.text, fontoffsetx, y + yintoffset + 23, 1.0f, font_size);
+		Renderer2D::DrawQuad({ xpos, ypos, 1.0f }, { width, -yoffset }, Active_Line_Color, { 0.5f, -0.5f });
+		if (state.active)
+			ui::fr->PrintStringui(state.text.c_str(), fontoffsetx, yintoffset + font_size/2, 1.0f, font_size, glm::vec4(1.0f), true);
 	}
 }
 

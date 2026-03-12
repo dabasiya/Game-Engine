@@ -4,6 +4,7 @@
 #include <string>
 #include <stdio.h>
 #include <iostream>
+#include <vector>
 
 Shader::Shader(const char* vertexpath, const char* fragmentpath) {
 
@@ -51,6 +52,37 @@ Shader::Shader(const char* vertexpath, const char* fragmentpath) {
 	glDeleteShader(vshader);
 	glDeleteShader(fshader);
 
+}
+
+Shader::Shader(const char* computeshaderpath) {
+	std::string computecodestring = ReadFile(computeshaderpath);
+
+	const char* computecode = computecodestring.c_str();
+
+	unsigned int cshader;
+
+	cshader = glCreateShader(GL_COMPUTE_SHADER);
+	glShaderSource(cshader, 1, &computecode, nullptr);
+	glCompileShader(cshader);
+
+	GLint compiled = GL_FALSE;
+	glGetShaderiv(cshader, GL_COMPILE_STATUS, &compiled);
+
+	if (compiled == GL_FALSE) {
+		GLint logLength = 0;
+		glGetShaderiv(cshader, GL_INFO_LOG_LENGTH, &logLength);
+
+		std::vector<GLchar> log(logLength);
+		glGetShaderInfoLog(cshader, logLength, &logLength, log.data());
+
+		printf("Compute shader compile error (%s):\n%s\n", computeshaderpath, log.data());
+	}
+
+	ID = glCreateProgram();
+	glAttachShader(ID, cshader);
+	glLinkProgram(ID);
+
+	glDeleteShader(cshader);
 }
 
 
@@ -147,6 +179,10 @@ void Shader::SetVec3(const char* name, const glm::vec3& value) {
 	glUniform3fv(GetLocation(name), 1/*count*/, glm::value_ptr(value));
 }
 
+void Shader::SetVec4(const char* name, const glm::vec4& value) {
+	glUniform4fv(GetLocation(name), 1, glm::value_ptr(value));
+}
+
 void Shader::SetInt(const char* name, int value) {
 	int loc = GetLocation(name);
 	glUniform1i(loc, value);
@@ -169,4 +205,8 @@ void Shader::SetIntArray(const char* name, int* values, unsigned int count) {
 	int loc = GetLocation(name);
 	std::cout << loc << std::endl;
 	glUniform1iv(loc, count, values);
+}
+
+int Shader::GetUniformBlockIndex(const char* name) {
+	return glGetUniformBlockIndex(ID, name);
 }

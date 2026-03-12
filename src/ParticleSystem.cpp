@@ -21,16 +21,19 @@ void ParticleSystem::OnUpdate(float ts) {
 		}
 
 		particle.liferemaining -= ts;
-		particle.position.x += particle.velocity.x;
-		particle.position.y += particle.velocity.y;
+		particle.position += particle.velocity * ts;
+
+		if (particle.Gravity) {
+			particle.velocity.y -= 9.8f * ts;
+		}
 
 		particle.rotation += glm::degrees(ts * 3 * particle.rotationspeed);
 	}
 }
 
 void ParticleSystem::OnRender(const glm::mat4& cammatrix) {
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	Renderer2D::BeginScene(cammatrix);
 
 	for (auto& particle : m_particlepool) {
@@ -41,27 +44,20 @@ void ParticleSystem::OnRender(const glm::mat4& cammatrix) {
 		glm::vec4 color = glm::vec4(1.0f);
 		float size = 0.0f;
 
-		if (life > 0.5f) {
-			float n = (life - 0.5f) * 2.0f;
-			color = glm::lerp(particle.colorbegin, particle.colorend, n);
-			size = glm::lerp(particle.sizebegin, particle.sizeend, n);
-		}
-		else {
-			float n = life * 2.0f;
-			color = glm::lerp(particle.colorend, particle.colorbegin, n);
-			size = glm::lerp(particle.sizeend, particle.sizebegin, n);
-		}
+		color = glm::lerp(particle.colorend, particle.colorbegin, life);
+		size = glm::lerp(particle.sizeend, particle.sizebegin, life);
+
 
 		//float size = glm::lerp(particle.sizeend, particle.sizebegin, life);
 
 		if (!particle.isimage)
-			Renderer2D::DrawRotatedQuad(particle.position, { size, size }, particle.rotation, color);
+			Renderer2D::DrawRotatedQuad(particle.position, { size, size }, {0.0f, yrotation, particle.rotation}, color);
 		else
-			Renderer2D::DrawRotatedQuad(particle.position, { size, size }, particle.rotation, particle.m_subtexture, color);
+			Renderer2D::DrawRotatedQuad(particle.position, { size, size }, {0.0f, yrotation, particle.rotation}, particle.m_subtexture, color);
 	}
 
 	Renderer2D::EndScene();
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void ParticleSystem::Emit(const ParticleProps& pprops) {
@@ -75,8 +71,10 @@ void ParticleSystem::Emit(const ParticleProps& pprops) {
 	particle.lifetime = pprops.lifetime;
 	particle.liferemaining = pprops.lifetime;
 	particle.velocity = pprops.velocity;
+	particle.Gravity = pprops.Gravity;
 	particle.velocity.x += pprops.velocityvariation.x * (Random::Float() - 0.5f);
 	particle.velocity.y += pprops.velocityvariation.y * (Random::Float() - 0.5f);
+	particle.velocity.z += pprops.velocityvariation.z * (Random::Float() - 0.5f);
 	particle.sizebegin += pprops.sizevariation * (Random::Float() - 0.5f);
 	particle.rotation = Random::Float() * 2.0f * glm::pi<float>();
 	particle.rotationspeed = Random::Float() - 0.5f;

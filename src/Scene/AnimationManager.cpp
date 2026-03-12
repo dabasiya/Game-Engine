@@ -52,6 +52,9 @@ void AnimationManager::Update(float ts) {
 
 			unsigned int index = (unsigned int)(animationop.time / single_interpolation_time);
 
+			if (index >= animationop.m_PointsPosition.size()-1)
+				continue;
+
 			float ttime = animationop.time - (single_interpolation_time * index);
 			glm::vec3 iposition = Interpolate(animationop.m_PointsPosition[index], animationop.m_PointsPosition[index + 1], ttime / single_interpolation_time);
 		
@@ -98,4 +101,23 @@ void AnimationManager::Update(float ts) {
 
 void AnimationManager::RemoveOperation(unsigned int index) {
 	m_Operations.erase(m_Operations.begin() + index);
+}
+
+
+void AnimationManager::RemoveOperation(std::shared_ptr<Entity> e) {
+
+	unsigned int len = m_Operations.size();
+	for (unsigned int i = 0; i < len; i++) {
+		
+		if (m_Operations[i].m_AnimationType == POSITION_INTERPOLATE) {
+			auto& tc = e->GetComponent<TransformComponent>();
+			unsigned int plength = m_Operations[i].m_PointsPosition.size();
+
+			glm::vec3 position = m_Operations[i].m_PointsPosition[plength - 1];
+
+			tc.position = position;
+
+			m_Operations[i].time = m_Operations[i].animationcompletetime;
+		}
+	}
 }

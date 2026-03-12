@@ -1,0 +1,45 @@
+Scene: Undefined
+texture13:
+  path: res/EditorLayerIcons.png
+texture15:
+  path: res/icons.png
+Entities:
+  - Entity: 1
+    NameComponent:
+      name: Camera
+      active: true
+    TransformComponent:
+      position: [0, 0, 10]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    CameraComponent:
+      min_x: 0
+      max_x: 0
+      min_y: 0
+      max_y: 0
+      camerao:
+        near: 0
+        far: 20
+        size: 0
+      camerap:
+        angle: 45
+        near: 0.100000001
+        far: 100
+      cameratype: 0
+      primary: true
+    ChildEntities:
+      []
+  - Entity: 0
+    NameComponent:
+      name: GameName
+      active: true
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    FontRendererComponent:
+      text: Chakotra
+      opacity: 1
+      pixelsize: 256
+    ChildEntities:
+      []

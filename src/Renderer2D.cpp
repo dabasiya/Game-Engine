@@ -8,6 +8,8 @@
 
 #include <UI/UI.h>
 
+#include <Instrumentor.h>
+
 std::shared_ptr<Texture> Renderer2D::textures[16];
 
 // declare static variables of Renderer2D structure
@@ -67,7 +69,7 @@ void Renderer2D::Init() {
 	// create Vertex buffer
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, Vertexbuffersize, nullptr, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, Vertexbuffersize, nullptr, GL_DYNAMIC_DRAW);
 
 
 
@@ -139,14 +141,15 @@ void Renderer2D::Init() {
 	memorybuffer = (struct Vertex*)malloc(Vertexbuffersize);
 
 	state.bufferbase = state.bufferptr = memorybuffer;
+
+	textures[0] = state.white_texture;
 }
 
 
 void Renderer2D::BeginScene(const glm::mat4& cameraprojectionview) {
 
 	state.shadercontext->Bind();
-	textures[0] = state.white_texture;
-	textures[1] = ui::fr->fonttexture;
+	//textures[1] = ui::fr->fonttexture;
 	// set view and projection value
 	state.shadercontext->SetMat4("projectionview", cameraprojectionview);
 
@@ -166,12 +169,33 @@ void Renderer2D::EndScene() {
 	Flush();
 }
 
+unsigned int Renderer2D::GetUnusedTextureIndex() {
+	for (unsigned int i = 1; i < 16; i++) {
+		if (textures[i] == nullptr)
+			return i;
+		else if (textures[i]->width == 1) {
+			return i;
+		}
+	}
+	return UINT32_MAX;
+}
+
 
 // for change shader
 void Renderer2D::UseShader(std::shared_ptr<Shader> a_shader) {
 	state.shadercontext = a_shader;
 	state.shadercontext->Bind();
 }
+
+
+uint32_t Renderer2D::HashString(const char* str) {
+	uint32_t hash = 2166136261u;
+	while (*str) {
+		hash = (hash ^ (uint8_t)*str++) * 16777619u;
+	}
+	return hash;
+}
+
 
 
 void Renderer2D::SetTexture(std::shared_ptr<Texture> textureid, unsigned int id) {
@@ -236,6 +260,7 @@ void Renderer2D::DrawLine(const glm::vec3& p1, const glm::vec3& p2, const glm::v
 
 void Renderer2D::DrawQuad(const glm::mat4& translation, const glm::vec4& color) {
 
+
 	// check if Vertexpointer reached limit then first apply drawcall and reset buffer
 	if (state.indicespointer >= maxquadcount * 6) {
 		Flush();
@@ -261,6 +286,44 @@ void Renderer2D::DrawQuad(const glm::mat4& translation, const glm::vec4& color) 
 
 	state.bufferptr->position = translation * quadVertexposition[3];
 	state.bufferptr->color = color;
+	state.bufferptr->textureindex = 0.0f;
+	state.bufferptr->texcoords = glm::vec2(1.0f, 0.0f);
+	state.bufferptr++;
+
+	state.indicespointer += 6;
+}
+
+void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& scale, const std::vector<glm::vec4>& color, glm::vec2 ref) {
+
+  	glm::mat4 translation = glm::translate(glm::mat4(1.0f), position) *
+		glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, 1.0f)) *
+		glm::translate(glm::mat4(1.0f), { ref.x, ref.y, 0.0f });
+
+
+  	if (state.indicespointer >= maxquadcount * 6) {
+		Flush();
+	}
+
+	state.bufferptr->position = translation * quadVertexposition[0];
+	state.bufferptr->color = color[0];
+	state.bufferptr->textureindex = 0.0f;
+	state.bufferptr->texcoords = glm::vec2(0.0f, 0.0f);
+	state.bufferptr++;
+
+	state.bufferptr->position = translation * quadVertexposition[1];
+	state.bufferptr->color = color[1];
+	state.bufferptr->textureindex = 0.0f;
+	state.bufferptr->texcoords = glm::vec2(0.0f, 1.0f);
+	state.bufferptr++;
+
+	state.bufferptr->position = translation * quadVertexposition[2];
+	state.bufferptr->color = color[2];
+	state.bufferptr->textureindex = 0.0f;
+	state.bufferptr->texcoords = glm::vec2(1.0f, 1.0f);
+	state.bufferptr++;
+
+	state.bufferptr->position = translation * quadVertexposition[3];
+	state.bufferptr->color = color[3];
 	state.bufferptr->textureindex = 0.0f;
 	state.bufferptr->texcoords = glm::vec2(1.0f, 0.0f);
 	state.bufferptr++;
@@ -294,6 +357,18 @@ void Renderer2D::Release() {
 void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& scale, float angle, const glm::vec4& color, glm::vec2 ref) {
 	DrawRotatedQuad({ position.x, position.y, 0.0f }, scale, angle, color, ref);
 }
+
+void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& scale, const glm::vec3& rotations, const glm::vec4& color, glm::vec2 ref) {
+	glm::mat4 translation = glm::translate(glm::mat4(1.0f), position) *
+		glm::rotate(glm::mat4(1.0f), glm::radians(rotations.z), glm::vec3(0.0f, 0.0f, 1.0f)) *
+		glm::rotate(glm::mat4(1.0f), glm::radians(rotations.y), glm::vec3(0.0f, 1.0f, 0.0f)) *
+		glm::rotate(glm::mat4(1.0f), glm::radians(rotations.x), glm::vec3(1.0f, 0.0f, 0.0f)) *
+		glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, 1.0f)) *
+		glm::translate(glm::mat4(1.0f), { ref.x, ref.y, 0.0f });
+
+	DrawQuad(translation, color);
+}
+
 
 
 void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& scale, float angle, const glm::vec4& color, glm::vec2 ref) {
@@ -433,6 +508,24 @@ void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& sca
 
 
 }
+
+
+void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& scale, const glm::vec3& rotations, const float textureindex, glm::vec2 ref) {
+
+
+	glm::mat4 translation = glm::translate(glm::mat4(1.0f), position) *
+		glm::rotate(glm::mat4(1.0f), glm::radians(rotations.z), glm::vec3(0.0f, 0.0f, 1.0f)) *
+		glm::rotate(glm::mat4(1.0f), glm::radians(rotations.y), glm::vec3(0.0f, 1.0f, 0.0f)) * 
+		glm::rotate(glm::mat4(1.0f), glm::radians(rotations.x), glm::vec3(1.0f, 0.0f, 0.0f)) *
+		glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, 1.0f)) *
+		glm::translate(glm::mat4(1.0f), { ref.x, ref.y, 0.0f });
+
+	DrawQuad(translation, textureindex);
+
+
+}
+
+
 void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& scale, float angle, const float textureindex, glm::vec2 ref) {
 	DrawRotatedQuad({ position.x, position.y, 0.0f }, scale, angle, textureindex, ref);
 }
@@ -440,8 +533,10 @@ void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& sca
 
 void Renderer2D::DrawQuad(const glm::mat4& translation, const SubTexture& a_SubTexture, float opacity, const glm::vec4& a_color) {
 
+	static unsigned int maxquadfaces = maxquadcount * 6;
+
 	// check if Vertexpointer reached limit then first apply drawcall and reset buffer
-	if (state.indicespointer >= maxquadcount * 6) {
+	if (state.indicespointer >= maxquadfaces) {
 		Flush();
 	}
 
@@ -503,6 +598,18 @@ void Renderer2D::DrawRotatedQuad(const glm::vec3& pos, const glm::vec2& scale, f
 	DrawQuad(translation, a_subtexture, opacity);
 }
 
+void Renderer2D::DrawRotatedQuad(const glm::vec3& pos, const glm::vec2& scale, const glm::vec3& rotations, const SubTexture& a_subtexture, float opacity, const glm::vec2 ref) {
+
+	glm::mat4 translation = glm::translate(glm::mat4(1.0f), pos) *
+		glm::rotate(glm::mat4(1.0f), glm::radians(rotations.z), glm::vec3(0.0f, 0.0f, 1.0f)) *
+		glm::rotate(glm::mat4(1.0f), glm::radians(rotations.y), glm::vec3(0.0f, 1.0f, 0.0f)) *
+		glm::rotate(glm::mat4(1.0f), glm::radians(rotations.x), glm::vec3(1.0f, 0.0f, 0.0f)) *
+		glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, 1.0f)) *
+		glm::translate(glm::mat4(1.0f), { ref.x, ref.y, 0.0f });
+
+	DrawQuad(translation, a_subtexture, opacity);
+}
+
 void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& scale, float angle, const SubTexture& a_subtexture, const glm::vec4& color, glm::vec2 ref) {
 	glm::mat4 translation = glm::translate(glm::mat4(1.0f), position) *
 		glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f)) *
@@ -517,6 +624,16 @@ void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& sca
 	DrawRotatedQuad(glm::vec3(position.x, position.y, 0.0f), scale, angle, a_subtexture, color);
 }
 
+void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& scale, const glm::vec3& rotations, const SubTexture& a_subtexture, const glm::vec4& color, glm::vec2 ref) {
+	glm::mat4 translation = glm::translate(glm::mat4(1.0f), position) *
+		glm::rotate(glm::mat4(1.0f), glm::radians(rotations.z), glm::vec3(0.0f, 0.0f, 1.0f)) *
+		glm::rotate(glm::mat4(1.0f), glm::radians(rotations.y), glm::vec3(0.0f, 1.0f, 0.0f)) *
+		glm::rotate(glm::mat4(1.0f), glm::radians(rotations.x), glm::vec3(1.0f, 0.0f, 0.0f)) *
+		glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, 1.0f)) *
+		glm::translate(glm::mat4(1.0f), { ref.x, ref.y, 0.0f });
+
+	DrawQuad(translation, a_subtexture, 1.0f, color);
+}
 
 
 void Renderer2D::DrawEntity(float id, const glm::vec2& position, const glm::vec2& scale, float angle, const SubTexture& a_subtexture, glm::vec2 ref) {

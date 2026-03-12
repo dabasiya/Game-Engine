@@ -20,6 +20,13 @@ Serializer::Serializer(std::shared_ptr<Scene>& a_scene)
 
 
 void Serializer::SerializeEntity(YAML::Emitter& out, std::shared_ptr<Entity> e) {
+
+
+
+	if (!e->m_scene->m_registry.valid(e->id))
+		return;
+
+
 	out << YAML::BeginMap;
 	out << YAML::Key << "Entity" << YAML::Value << (unsigned int)e->id;
 
@@ -48,6 +55,19 @@ void Serializer::SerializeEntity(YAML::Emitter& out, std::shared_ptr<Entity> e) 
 		out << YAML::Key << "SpriteRendererComponent" << YAML::BeginMap;
 
 		auto& sc = e->GetComponent<SpriteRendererComponent>();
+		out << YAML::Key << "subtexture" << sc.m_subtexture;
+		out << YAML::Key << "type" << YAML::Value << sc.type;
+		out << YAML::Key << "color" << YAML::Value << sc.color;
+		out << YAML::Key << "transparent" << YAML::Value << sc.transparent;
+
+		out << YAML::EndMap;
+	}
+
+	// UISpriteRendererComponent
+	if (e->HasComponent<UISpriteRendererComponent>()) {
+		out << YAML::Key << "UISpriteRendererComponent" << YAML::BeginMap;
+
+		auto& sc = e->GetComponent<UISpriteRendererComponent>();
 		out << YAML::Key << "subtexture" << sc.m_subtexture;
 		out << YAML::Key << "type" << YAML::Value << sc.type;
 		out << YAML::Key << "color" << YAML::Value << sc.color;
@@ -89,6 +109,17 @@ void Serializer::SerializeEntity(YAML::Emitter& out, std::shared_ptr<Entity> e) 
 		auto& frc = e->GetComponent<FontRendererComponent>();
 
 		out << YAML::Key << "FontRendererComponent" << YAML::BeginMap;
+		out << YAML::Key << "text" << YAML::Value << frc.text;
+		out << YAML::Key << "opacity" << YAML::Value << frc.opacity;
+		out << YAML::Key << "pixelsize" << YAML::Value << frc.pixelsize;
+		out << YAML::EndMap;
+	}
+
+	// UIFontRendererComponent
+	if (e->HasComponent<UIFontRendererComponent>()) {
+		auto& frc = e->GetComponent<UIFontRendererComponent>();
+
+		out << YAML::Key << "UIFontRendererComponent" << YAML::BeginMap;
 		out << YAML::Key << "text" << YAML::Value << frc.text;
 		out << YAML::Key << "opacity" << YAML::Value << frc.opacity;
 		out << YAML::Key << "pixelsize" << YAML::Value << frc.pixelsize;
@@ -175,6 +206,7 @@ void Serializer::SerializeEntity(YAML::Emitter& out, std::shared_ptr<Entity> e) 
 		out << YAML::Key << "sizevariation" << YAML::Value << pg.m_particleprops.sizevariation;
 		out << YAML::Key << "colorbegin" << YAML::Value << pg.m_particleprops.colorbegin;
 		out << YAML::Key << "colorend" << YAML::Value << pg.m_particleprops.colorend;
+		out << YAML::Key << "gravity" << YAML::Value << pg.m_particleprops.Gravity;
 		out << YAML::EndMap;
 	}
 
@@ -184,6 +216,8 @@ void Serializer::SerializeEntity(YAML::Emitter& out, std::shared_ptr<Entity> e) 
 		auto& mc = e->GetComponent<Model3DComponent>();
 		out << YAML::Key << "filepath" << YAML::Value << mc.filepath;
 		out << YAML::Key << "shadername" << YAML::Value << mc.shadername;
+		out << YAML::Key << "bloom" << YAML::Value << mc.bloom;
+		out << YAML::Key << "outline" << YAML::Value << mc.outline;
 		out << YAML::EndMap;
 	}
 
@@ -202,7 +236,7 @@ void Serializer::SerializeEntity(YAML::Emitter& out, std::shared_ptr<Entity> e) 
 		auto& lc = e->GetComponent<LightComponent>();
 		out << YAML::Key << "Type" << YAML::Value << (unsigned int)lc.lighttype;
 		out << YAML::Key << "Angle" << YAML::Value << lc.angle;
-		out << YAML::Key << "Color" << YAML::Value << lc.color;
+		out << YAML::Key << "Color" << YAML::Value << glm::vec3(lc.color);
 		out << YAML::Key << "Direction" << YAML::Value << lc.direction;
 		out << YAML::EndMap;
 	}
@@ -219,6 +253,15 @@ void Serializer::SerializeEntity(YAML::Emitter& out, std::shared_ptr<Entity> e) 
 		out << YAML::Key << "Friction" << YAML::Value << pc.friction;
 		out << YAML::Key << "Radius" << YAML::Value << pc.SphereRadius;
 		out << YAML::Key << "PositiveOnly" << YAML::Value << pc.OnlyPositive;
+		out << YAML::Key << "RotationDirectionX" << YAML::Value << pc.Rotations[0];
+		out << YAML::Key << "RotationDirectionY" << YAML::Value << pc.Rotations[1];
+		out << YAML::Key << "RotationDirectionZ" << YAML::Value << pc.Rotations[2];
+		out << YAML::EndMap;
+	}
+
+	// Animation3DComponent
+	if (e->HasComponent<Animation3DComponent>()) {
+		out << YAML::Key << "Animation3DComponent" << YAML::BeginMap;
 		out << YAML::EndMap;
 	}
 }
@@ -227,6 +270,7 @@ void Serializer::Serialize(const std::string& path) {
 	YAML::Emitter out;
 	out << YAML::BeginMap;
 	out << YAML::Key << "Scene" << YAML::Value << "Undefined";
+	out << YAML::Key << "PhysicsType" << YAML::Value << m_scene->m_physicsType;
 
 	// write texture data
 	for (unsigned int i = 2; i < 16; i++) {
@@ -273,7 +317,9 @@ void Serializer::SerializeEntityHierarchy(YAML::Emitter& out, std::shared_ptr<En
 	out << YAML::Key << "ChildEntities" << YAML::Value << YAML::BeginSeq;
 
 	for (auto ce : rc.childEntities) {
-		SerializeEntityHierarchy(out, ce);
+
+		if(ce->m_scene->m_registry.valid(ce->id))
+			SerializeEntityHierarchy(out, ce);
 	}
 
 	out << YAML::EndSeq;
@@ -285,18 +331,20 @@ void Serializer::DeserializeEntityHierarchy(std::shared_ptr<Entity> deserialized
 
 	DeserializeEntity(deserializedentity, e);
 
-
 	auto ces = e["ChildEntities"];
 
 	for (auto sce : ces) {
 		std::cout << sce["NameComponent"]["name"].as<std::string>() << std::endl;
 		auto ent = deserializedentity->CreateChildEntity(sce["NameComponent"]["name"].as<std::string>());
 
+
 		DeserializeEntityHierarchy(ent, sce);
 	}
 }
 
 void Serializer::DeserializeEntity(std::shared_ptr<Entity> deserializedentity, YAML::Node& e) {
+
+	auto& cachedcomponent = deserializedentity->AddComponent<CachedComponents>();
 
 	auto nc = e["NameComponent"];
 	auto& nc2 = deserializedentity->GetComponent<NameComponent>();
@@ -308,10 +356,13 @@ void Serializer::DeserializeEntity(std::shared_ptr<Entity> deserializedentity, Y
 	transform.position = tc["position"].as<glm::vec3>();
 	transform.rotation = tc["rotation"].as<glm::vec3>();
 	transform.scale = tc["scale"].as<glm::vec3>();
+	transform.SetRotationEuler(transform.rotation);
 
 	// SpriteRendererComponent
 	auto sc = e["SpriteRendererComponent"];
 	if (sc) {
+
+		cachedcomponent.havespriterenderercomponent = true;
 
 		auto& sprite = deserializedentity->AddComponent<SpriteRendererComponent>();
 
@@ -324,9 +375,29 @@ void Serializer::DeserializeEntity(std::shared_ptr<Entity> deserializedentity, Y
 		sprite.color = sc["color"].as<glm::vec4>();
 	}
 
+
+	// UISpriteRendererComponent
+	auto sc2 = e["UISpriteRendererComponent"];
+	if (sc2) {
+
+		cachedcomponent.havespriterenderercomponent = true;
+
+		auto& sprite = deserializedentity->AddComponent<UISpriteRendererComponent>();
+
+		sprite.m_subtexture.coords1 = sc2["subtexture"]["coords1"].as<glm::vec2>();
+		sprite.m_subtexture.coords2 = sc2["subtexture"]["coords2"].as<glm::vec2>();
+		sprite.m_subtexture.index = sc2["subtexture"]["index"].as<unsigned int>();
+		sprite.transparent = sc2["transparent"].as<bool>();
+		sprite.type = sc2["type"].as<bool>();
+
+		sprite.color = sc2["color"].as<glm::vec4>();
+	}
+
 	// CameraComponent
 	auto cc = e["CameraComponent"];
 	if (cc) {
+
+		cachedcomponent.havecameracomponent = true;
 
 		auto& camerac = deserializedentity->AddComponent<CameraComponent>();
 
@@ -357,6 +428,9 @@ void Serializer::DeserializeEntity(std::shared_ptr<Entity> deserializedentity, Y
 	// FontRendererComponent
 	auto frc = e["FontRendererComponent"];
 	if (frc) {
+
+		cachedcomponent.havefontrenderercomponent = true;
+
 		auto& fontrendererc = deserializedentity->AddComponent<FontRendererComponent>("", 0.0f);
 
 		fontrendererc.text = frc["text"].as<std::string>();
@@ -364,10 +438,26 @@ void Serializer::DeserializeEntity(std::shared_ptr<Entity> deserializedentity, Y
 		fontrendererc.pixelsize = frc["pixelsize"].as<float>();
 	}
 
+	// UIFontRendererComponent
+	auto frc2 = e["UIFontRendererComponent"];
+	if (frc2) {
+
+		cachedcomponent.havefontrenderercomponent = true;
+
+		auto& fontrendererc = deserializedentity->AddComponent<UIFontRendererComponent>("", 0.0f);
+
+		fontrendererc.text = frc2["text"].as<std::string>();
+		fontrendererc.opacity = frc2["opacity"].as<float>();
+		fontrendererc.pixelsize = frc2["pixelsize"].as<float>();
+	}
+
 	// ScriptComponent
 	auto scc = e["ScriptComponent"];
 
 	if (scc) {
+
+		cachedcomponent.havescriptcomponent = true;
+
 		std::string name = scc["name"].as<std::string>();
 		auto& scriptc = deserializedentity->AddComponent<ScriptComponent>(name);
 	}
@@ -375,6 +465,9 @@ void Serializer::DeserializeEntity(std::shared_ptr<Entity> deserializedentity, Y
 	// RigidBody2DComponent
 	auto rb2d = e["RigidBody2DComponent"];
 	if (rb2d) {
+
+		cachedcomponent.haverigidbody2dcomponent = true;
+
 		auto& rg2d = deserializedentity->AddComponent<RigidBody2DComponent>();
 		rg2d.fixedrotation = rb2d["fixedrotation"].as<bool>();
 		int type = rb2d["type"].as<int>();
@@ -385,6 +478,9 @@ void Serializer::DeserializeEntity(std::shared_ptr<Entity> deserializedentity, Y
 	// BoxCollider2DComponent
 	auto bx2d = e["BoxCollider2DComponent"];
 	if (bx2d) {
+
+		cachedcomponent.haveboxcollider2dcomponent = true;
+
 		auto& b2d = deserializedentity->AddComponent<BoxCollider2DComponent>();
 		b2d.density = bx2d["density"].as<float>();
 		b2d.friction = bx2d["friction"].as<float>();
@@ -395,28 +491,12 @@ void Serializer::DeserializeEntity(std::shared_ptr<Entity> deserializedentity, Y
 		b2d.sameasscale = bx2d["sameasscale"].as<bool>();
 	}
 
-	// ChainShapeColliderComponent
-	auto cs = e["ChainShapeColliderComponent"];
-	if (cs) {
-		auto& csc = deserializedentity->AddComponent<ChainShapeColliderComponent>();
-		unsigned int index = 0;
-		while (true) {
-			std::string si = std::to_string(index);
-			if (cs[si]) {
-				float x = cs[si]["x"].as<float>();
-				float y = cs[si]["y"].as<float>();
-				csc.vertices.push_back(b2Vec2(x, y));
-				index++;
-			}
-			else
-				break;
-		}
-		csc.objectid = cs["objectid"].as<unsigned int>();
-	}
-
 	// AnimationGroupComponent
 	auto agcp = e["AnimationGroupComponent"];
 	if (agcp) {
+
+		cachedcomponent.haveanimationgroupcomponent = true;
+
 		auto& agc = deserializedentity->AddComponent<AnimationGroupComponent>();
 		unsigned int index = 0;
 		while (true) {
@@ -434,10 +514,13 @@ void Serializer::DeserializeEntity(std::shared_ptr<Entity> deserializedentity, Y
 	// particlegeneratorcomponent
 	auto pg = e["ParticleGeneratorComponent"];
 	if (pg) {
+
+		cachedcomponent.haveparticlegeneratorcomponent = true;
+
 		auto& pgc = deserializedentity->AddComponent<ParticleGeneratorComponent>();
 		pgc.count = pg["count"].as<unsigned int>();
-		pgc.m_particleprops.velocity = pg["velocity"].as<glm::vec2>();
-		pgc.m_particleprops.velocityvariation = pg["velocityvariation"].as<glm::vec2>();
+		pgc.m_particleprops.velocity = pg["velocity"].as<glm::vec3>();
+		pgc.m_particleprops.velocityvariation = pg["velocityvariation"].as<glm::vec3>();
 		pgc.m_particleprops.sizebegin = pg["beginsize"].as<float>();
 		pgc.m_particleprops.sizeend = pg["endsize"].as<float>();
 		pgc.m_particleprops.lifetime = pg["lifetime"].as<float>();
@@ -447,6 +530,7 @@ void Serializer::DeserializeEntity(std::shared_ptr<Entity> deserializedentity, Y
 		pgc.m_particleprops.m_subtexture.coords1 = pg["subtexture"]["coords1"].as<glm::vec2>();
 		pgc.m_particleprops.m_subtexture.coords2 = pg["subtexture"]["coords2"].as<glm::vec2>();
 		pgc.m_particleprops.m_subtexture.index = pg["subtexture"]["index"].as<unsigned int>();
+		pgc.m_particleprops.Gravity = pg["gravity"].as<bool>();
 
 
 		// this scale and rotation values set by entity transform component
@@ -461,9 +545,13 @@ void Serializer::DeserializeEntity(std::shared_ptr<Entity> deserializedentity, Y
 	// model3d component
 	auto mc = e["Model3DComponent"];
 	if (mc) {
+
+		cachedcomponent.havemodel3dcomponent = true;
+
 		auto& m3c = deserializedentity->AddComponent<Model3DComponent>();
 		m3c.filepath = mc["filepath"].as<std::string>();
 		m3c.shadername = mc["shadername"].as<std::string>();
+		m3c.bloom = mc["bloom"].as<bool>();
 		m3c.mModel = ModelManager::GetModel(m3c.filepath);
 	}
 
@@ -477,16 +565,23 @@ void Serializer::DeserializeEntity(std::shared_ptr<Entity> deserializedentity, Y
 	// lightcomponent
 	auto lc = e["LightComponent"];
 	if (lc) {
+
+		cachedcomponent.havelightcomponent = true;
+
 		auto& nlc = deserializedentity->AddComponent<LightComponent>();
 		nlc.lighttype = (LightType)lc["Type"].as<unsigned int>();
 		nlc.angle = lc["Angle"].as<float>();
-		nlc.color = lc["Color"].as<glm::vec3>();
+		glm::vec3 clr = lc["Color"].as<glm::vec3>();
+		nlc.color = glm::vec4(clr, 1.0f);
 		nlc.direction = lc["Direction"].as<glm::vec3>();
 	}
 
 	// physics component
 	auto pc = e["PhysicsComponent"];
 	if (pc) {
+
+		cachedcomponent.havephysicscomponent = true;
+
 		auto& npc = deserializedentity->AddComponent<PhysicsComponent>();
 		npc.friction = pc["Friction"].as<float>();
 		npc.SphereRadius = pc["Radius"].as<float>();
@@ -495,6 +590,22 @@ void Serializer::DeserializeEntity(std::shared_ptr<Entity> deserializedentity, Y
 		npc.ShapeType = (PhysicsShapeType)pc["ColliderType"].as<unsigned int>();
 		npc.BoxHalfExtents = pc["HalfExtent"].as<glm::vec3>();
 		npc.OnlyPositive = pc["PositiveOnly"].as<bool>();
+		npc.Rotations[0] = pc["RotationDirectionX"].as<bool>();
+		npc.Rotations[1] = pc["RotationDirectionY"].as<bool>();
+		npc.Rotations[2] = pc["RotationDirectionZ"].as<bool>();
+	}
+
+	// Animation3DComponent
+	auto a3c = e["Animation3DComponent"];
+	if (a3c) {
+
+		cachedcomponent.haveanimation3dcomponent = true;
+
+		if (deserializedentity->HasComponent<Model3DComponent>()) {
+			auto& m3d = deserializedentity->GetComponent<Model3DComponent>();
+			auto& na3c = deserializedentity->AddComponent<Animation3DComponent>();
+			na3c.Reload(m3d.filepath, m3d.mModel.get());
+		}
 	}
 }
 
@@ -507,6 +618,8 @@ void Serializer::Deserialize(const std::string& path) {
 	YAML::Node data = YAML::Load(strstream.str());
 	if (!data["Scene"])
 		return;
+
+	m_scene->m_physicsType = (PhysicsType)data["PhysicsType"].as<unsigned int>();
 
 	// load textures
 	for (unsigned int i = 2; i < 16; i++) {

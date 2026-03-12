@@ -1,0 +1,67 @@
+#version 430
+
+layout (local_size_x = 16, local_size_y = 16) in;
+
+// Input texture (half-resolution, e.g., W/2 x H/2)
+layout (binding = 0) uniform sampler2D srcImage;
+layout (binding = 1) uniform sampler2D oi;
+// Output image (full-resolution, e.g., W x H)
+layout (binding = 1, rgba8) uniform writeonly image2D dstImage;
+
+void main() {
+    // 1. Get the output coordinate in the full-resolution image
+	ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+	
+	// Get the size of the output image for the boundary check
+	ivec2 outputSize = imageSize(dstImage);
+
+	// Boundary check
+	if (coord.x >= outputSize.x || coord.y >= outputSize.y) {
+		return;
+    }
+
+    // 2. Calculate the corresponding input coordinate (P_out / 2.0)
+    // We add 0.5 to center the sample calculation between texels.
+    vec2 inputCoord = (vec2(coord) + 0.5) * 0.5;
+
+    // 3. Determine the top-left texel index (p0) and the fractional part (f)
+    // We subtract 0.5 to align p0 with the top-left sample index for the four-sample box.
+    ivec2 p0 = ivec2(floor(inputCoord - 0.5)); 
+    vec2 f = fract(inputCoord - 0.5);
+
+    // Get the size of the source image for clamping
+    ivec2 srcSize = textureSize(srcImage, 0);
+
+    // 4. Sample the four required neighbors (A, B, C, D) from the low-res texture
+    
+    // A (p0) - Top-Left
+    ivec2 A_coord = clamp(p0, ivec2(0), srcSize - ivec2(1));
+    vec4 A = texelFetch(srcImage, A_coord, 0);
+
+    // B (p0 + 1, 0) - Top-Right
+    ivec2 B_coord = clamp(p0 + ivec2(1, 0), ivec2(0), srcSize - ivec2(1));
+    vec4 B = texelFetch(srcImage, B_coord, 0);
+    
+    // C (p0 + 0, 1) - Bottom-Left
+    ivec2 C_coord = clamp(p0 + ivec2(0, 1), ivec2(0), srcSize - ivec2(1));
+    vec4 C = texelFetch(srcImage, C_coord, 0);
+
+    // D (p0 + 1, 1) - Bottom-Right
+    ivec2 D_coord = clamp(p0 + ivec2(1, 1), ivec2(0), srcSize - ivec2(1));
+    vec4 D = texelFetch(srcImage, D_coord, 0);
+
+    // 5. Bilinear Interpolation
+    // Lerp horizontally (Top row T, Bottom row U)
+    vec4 T = mix(A, B, f.x);
+    vec4 U = mix(C, D, f.x);
+    
+    // Lerp vertically (Final Color)
+    vec4 finalColor = mix(T, U, f.y);
+
+    vec4 oic = texelFetch(oi, coord, 0);
+
+    finalColor = (finalColor + oic) / 2.0;
+
+	// 6. Write to output image (Full-Resolution)
+	imageStore(dstImage, coord, finalColor);
+}

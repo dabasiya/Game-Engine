@@ -17,4 +17,8 @@ struct CopiedEntity {
 	std::optional<BoxCollider2DComponent> bcc;
 	std::optional<ChainShapeColliderComponent> csc;
 	std::optional<ParticleGeneratorComponent> pgc;
+	std::optional<Model3DComponent> m3c;
+	std::optional<LightComponent> lc;
+	std::optional<PhysicsComponent> pc;
+	std::optional<Animation3DComponent> a3c;
 };

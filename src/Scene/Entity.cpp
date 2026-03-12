@@ -2,15 +2,12 @@
 #include "Components.h"
 
 std::shared_ptr<Entity> Entity::CreateChildEntity(const std::string& name) {
-    std::shared_ptr<Entity> e = std::make_shared<Entity>();
-    e->id = m_scene->m_registry.create();
-    e->m_scene = m_scene;
-    e->AddComponent<NameComponent>(name);
-    auto& rc = e->AddComponent<RelationshipComponent>();
-    e->AddComponent<TransformComponent>(glm::vec3(0.0f));
+    std::shared_ptr<Entity> e = m_scene->CreateEntity(name);
+    auto& rc = e->GetComponent<RelationshipComponent>();
     rc.parentEntity = shared_from_this();
 
     auto& rrc = GetComponent<RelationshipComponent>();
     rrc.childEntities.push_back(e);
     return e;
 }
+

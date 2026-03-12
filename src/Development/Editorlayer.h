@@ -55,10 +55,10 @@ struct EditorLayer {
 	static CameraTransform s_CameraTransform;
 
 	// for color input
-	std::vector<std::string> colorvaluesstring = { "R", "G", "B", "A" };
+	std::vector<const char*> colorvaluesstring = { "R", "G", "B", "A" };
 
 	// for vector 3 input
-	std::vector<std::string> positionvaluesstring = {
+	std::vector<const char*> positionvaluesstring = {
 		  "X",
 		  "Y",
 		  "Z"
@@ -86,6 +86,8 @@ struct EditorLayer {
 
 	static bool showcolliders;
 
+	static bool showobjectselectionscene;
+
 
 	Console test_console;
 
@@ -103,7 +105,7 @@ struct EditorLayer {
 	EntitySceneEvent m_EntitySceneEvent;
 
 
-	std::unordered_map<std::string, SubTexture> EditorLayerIcons;
+	static std::unordered_map<std::string, SubTexture> EditorLayerIcons;
 
 	// for show windows some part
 
@@ -114,7 +116,7 @@ struct EditorLayer {
 
 	bool colorbegin = true;
 
-	std::vector<std::string> rigidbodytypes = {
+	std::vector<const char*> rigidbodytypes = {
 	  "Static",
 	  "Dynamic"
 	};
@@ -146,6 +148,12 @@ struct EditorLayer {
 	windowdata entityregistrarwindowdata = windowdata(0, 0, 400, { 0.87f, .70f, 0.23, 1.0f }, { 0.88f, 0.75f, 0.38f, 1.0f });
 
 	windowdata skyboxwindowdata = windowdata(0, 0, 600, { 0.6f, 0.0f, 0.24f, 1.0f }, { 1.0f, 0.0f, 0.4f, 1.0f });
+
+  windowdata colorselectorwindowdata = windowdata(0, 0, 400, {0.6f, 0.0f, 0.24f, 1.0f }, { 1.0f, 0.0f, 0.4f, 1.0f });
+
+  windowdata cameraselectorwindowdata = windowdata(0, 0, 300, { 0.05f, 0.03f, 0.32f, 1.0f }, { .1f, .07f, .56f, 1.0f });
+
+  std::shared_ptr<Texture> EditorLayerIconsTexture;
 
 	EditorLayer();
 	~EditorLayer();

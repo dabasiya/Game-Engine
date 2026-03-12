@@ -6,6 +6,10 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <Application.h>
+
+#include <Instrumentor.h>
+
 std::shared_ptr<FontRenderer> ui::fr;
 
 std::stack<windowdata*> ui::windowstack;
@@ -14,8 +18,10 @@ std::vector<windowdata*> ui::windowdatas;
 
 std::stack<uistyle> ui::stylestack;
 
+windowdata* ui::activewindow;
 
-inputid ui::activeinputbox;
+uint32_t ui::activeelementid;
+std::unordered_map<uint32_t, InputState> ui::uiInputStates;
 
 bool ui::was_mouse_pressed = false;
 
@@ -23,72 +29,76 @@ int ui::panelsize = 30;
 int ui::elementsize = 20;
 int ui::fontsize = 14;
 
-float ui::widthor = 0.0f;
-float ui::heighto = 0.0f;
-float ui::hor = 0.0f;
-float ui::ho = 0.0f;
+double ui::widthor = 0.0;
+double ui::heighto = 0.0;
+double ui::hor = 0.0;
+double ui::ho = 0.0;
 
+std::vector<glm::vec4> cpcolors(4);
+std::vector<std::vector<glm::vec4>> cpmaincolors;
+std::vector<glm::vec4> opacitycolors(4);
+
+glm::vec4* ui::selectedcolor;
+
+std::vector<int> ui::quadindexes;
+std::vector<glm::vec4> ui::cliprects;
+
+
+SubTexture checkboxboundary = { 13, {0.0f, 0.75f}, {0.125f, 0.625f} };
+SubTexture checkboxcenter = { 13, {0.125f, 0.75f}, {0.25f, 0.625f} };
+
+
+glm::vec4 getcolorfromdegree(float degree) {
+	if (degree <= 60.0f) {
+		float g = degree / 60.0f;
+		return glm::vec4(1.0f, g, 0.0f, 1.0f);
+	}
+	else if (degree <= 120.0f) {
+		float d = degree - 60.0f;
+		float r = 1.0f - (d / 60.0f);
+		return glm::vec4(r, 1.0f, 0.0f, 1.0f);
+	}
+	else if (degree <= 180.0f) {
+		float d = degree - 120.0f;
+		float b = d / 60.0f;
+		return glm::vec4(0.0f, 1.0f, b, 1.0f);
+	}
+	else if (degree <= 240.0f) {
+		float d = degree - 180.0f;
+		float g = 1.0f - (d / 60.0f);
+		return glm::vec4(0.0f, g, 1.0f, 1.0f);
+	}
+	else if (degree <= 300.0f) {
+		float d = degree - 240.0f;
+		float r = d / 60.0f;
+		return glm::vec4(r, 0.0f, 1.0f, 1.0f);
+	}
+	else if (degree <= 360.0f) {
+		float d = degree - 300.0f;
+		float b = 1.0f - (d / 60.0f);
+		return glm::vec4(1.0f, 0.0f, b, 1.0f);
+	}
+	return glm::vec4(1.0f);
+}
 
 void ui::windowmove() {
-	for (auto data : windowdatas) {
-
-		if (data->visible) {
-
-			if (mousehover(data->x, data->y, data->width - WINDOW_TAB_HEIGHT, WINDOW_TAB_HEIGHT))
-			{
-				if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS && !data->mouse_locked && !was_mouse_pressed) {
-					if (data->z != 0.9f) {
-
-						for (auto a : windowdatas) {
-							a->z = 0.2f;
-							a->mouse_locked = false;
-						}
-						data->z = 0.9f;
-					}
-
-					was_mouse_pressed = true;
-
-					double x, y;
-					glfwGetCursorPos(Window::ID, &x, &y);
-
-					data->mouse_lock_x = (unsigned int)x;
-					data->mouse_lock_y = (unsigned int)y;
-
-					data->storex = data->x;
-					data->storey = data->y;
-
-					data->mouse_locked = true;
-
-					break;
-				}
-			}
-
-			if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE && data->mouse_locked) {
-				data->mouse_locked = false;
-
-			}
-
-			else if (data->mouse_locked) {
-				double x, y;
-				glfwGetCursorPos(Window::ID, &x, &y);
-
-				data->x = data->storex + (x - data->mouse_lock_x);
-				data->y = data->storey + (y - data->mouse_lock_y);
-			}
-		}
-
-	}
+	
 }
 
 
 
 bool ui::mousehover(int x, int y, int width, int height) {
-	return ((Window::Window_Mousex > x && Window::Window_Mousex < x + width) && (Window::Window_Mousey > y && Window::Window_Mousey < y + height));
+    int imx = (int)Window::Window_Mousex;
+	int imy = (int)Window::Window_Mousey;
+    return ((imx > x && imx < x + width) && (imy > y && imy < y + height));
 }
 
 
 bool ui::onevent(Event& e) {
 
+	InputState& state = uiInputStates[activeelementid];
+
+	
 	if (e.is(Event_Type::Mouse_Pressed)) {
 		for (auto data : windowdatas) {
 			if (data->visible) {
@@ -124,36 +134,36 @@ bool ui::onevent(Event& e) {
 	else if (e.is(Event_Type::Key_Typed)) {
 		KeyTypedEvent* ke = (KeyTypedEvent*)&e;
 
-		if (activeinputbox.type == inputtype::TEXT) {
+		if (state.type == InputType::TEXT) {
 			if ((ke->key >= 33 && ke->key <= 125) || ke->key == ' ') {
-				activeinputbox.text += static_cast<char>(ke->key);
+				state.text += static_cast<char>(ke->key);
 				return true;
 			}
 		}
 
-		else if (activeinputbox.type == inputtype::FLOAT) {
+		else if (state.type == InputType::FLOAT) {
 			if (ke->key >= '0' && ke->key <= '9')
 			{
-				activeinputbox.text += static_cast<char>(ke->key);
+				state.text += static_cast<char>(ke->key);
 				return true;
 			}
 			else if (ke->key == '-') {
-				if (activeinputbox.text == "") {
-					activeinputbox.text += "-";
+				if (state.text == "") {
+					state.text += "-";
 					return true;
 				}
 			}
 			else if (ke->key == '.') {
-				if (activeinputbox.text.find(".") == std::string::npos) {
-					activeinputbox.text += ".";
+				if (state.text.find(".") == std::string::npos) {
+					state.text += ".";
 					return true;
 				}
 			}
 		}
 
-		else if (activeinputbox.type == inputtype::INT) {
+		else if (state.type == InputType::INT) {
 			if (ke->key >= '0' && ke->key <= '9') {
-				activeinputbox.text += static_cast<char>(ke->key);
+				state.text += static_cast<char>(ke->key);
 				return true;
 			}
 		}
@@ -163,30 +173,105 @@ bool ui::onevent(Event& e) {
 		KeyPressedEvent* ke = (KeyPressedEvent*)&e;
 
 		if (ke->key == GLFW_KEY_BACKSPACE && ke->mod == GLFW_MOD_CONTROL) {
-			if (activeinputbox.type == inputtype::FLOAT) {
-				activeinputbox.text = "";
+			if (state.type == InputType::FLOAT) {
+				state.text = "";
 				return true;
 			}
-			else if (activeinputbox.type == inputtype::TEXT) {
-				int index = activeinputbox.text.find_last_of(" ");
+			else if (state.type == InputType::TEXT) {
+				int index = state.text.find_last_of(" ");
 				if (index > 0) {
-					activeinputbox.text = activeinputbox.text.substr(0, index);
+					state.text = state.text.substr(0, index);
 					return true;
 				}
 				else {
-					activeinputbox.text = "";
+					state.text = "";
 					return true;
 				}
 			}
 		}
 
-		else if (ke->key == GLFW_KEY_BACKSPACE && !activeinputbox.text.empty()) {
-			activeinputbox.text.pop_back();
+		else if (ke->key == GLFW_KEY_BACKSPACE && !state.text.empty()) {
+			state.text.pop_back();
 			return true;
 		}
 	}
 
 	return false;
+}
+
+void ui::resetInputs() {
+	for (auto& pair : uiInputStates) {
+		pair.second.text.clear();
+	}
+}
+
+void ui::Init() {
+
+  // init cp colors for color selection
+
+  cpcolors[0] = {0.0f, 0.0f, 0.0f, 1.0f};
+  cpcolors[1] = {1.0f, 1.0f, 1.0f, 1.0f};
+  cpcolors[2] = { 0.0f, 0.0f, 0.0f, 1.0f };
+  cpcolors[3] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+  opacitycolors[0] = { 1.0f, 1.0f, 1.0f, 1.0f };
+  opacitycolors[1] = { 1.0f, 1.0f, 1.0f, 0.0f };
+  opacitycolors[2] = { 1.0f, 1.0f, 1.0f, 0.0f };
+  opacitycolors[3] = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+  std::vector<glm::vec4> m1(4);
+  std::vector<glm::vec4> m2(4);
+  std::vector<glm::vec4> m3(4);
+  std::vector<glm::vec4> m4(4);
+  std::vector<glm::vec4> m5(4);
+  std::vector<glm::vec4> m6(4);
+
+  m1 = {
+	  {1.0f, 1.0f, 0.0f, 1.0f},
+	  {1.0f, 0.0f, 0.0f, 1.0f},
+	  {1.0f, 0.0f, 0.0f, 1.0f},
+	  {1.0f, 1.0f, 0.0f, 1.0f}
+  };
+
+  m2 = {
+	  {0.0f, 1.0f, 0.0f, 1.0f},
+	  {1.0f, 1.0f, 0.0f, 1.0f},
+	  {1.0f, 1.0f, 0.0f, 1.0f},
+	  {0.0f, 1.0f, 0.0f, 1.0f}
+  };
+  m3 = {
+	  {0.0f, 1.0f, 1.0f, 1.0f},
+	  {0.0f, 1.0f, 0.0f, 1.0f},
+	  {0.0f, 1.0f, 0.0f, 1.0f},
+	  {0.0f, 1.0f, 1.0f, 1.0f}
+  };
+  m4 = {
+	  {0.0f, 0.0f, 1.0f, 1.0f},
+	  {0.0f, 1.0f, 1.0f, 1.0f},
+	  {0.0f, 1.0f, 1.0f, 1.0f},
+	  {0.0f, 0.0f, 1.0f, 1.0f}
+  };
+  m5 = {
+	  {1.0f, 0.0f, 1.0f, 1.0f},
+	  {0.0f, 0.0f, 1.0f, 1.0f},
+	  {0.0f, 0.0f, 1.0f, 1.0f},
+	  {1.0f, 0.0f, 1.0f, 1.0f}
+  };
+  m6 = {
+	  {1.0f, 0.0f, 0.0f, 1.0f},
+	  {1.0f, 0.0f, 1.0f, 1.0f},
+	  {1.0f, 0.0f, 1.0f, 1.0f},
+	  {1.0f, 0.0f, 0.0f, 1.0f}
+  };
+
+  cpmaincolors.push_back(m1);
+  cpmaincolors.push_back(m2);
+  cpmaincolors.push_back(m3);
+  cpmaincolors.push_back(m4);
+  cpmaincolors.push_back(m5);
+  cpmaincolors.push_back(m6);
+  
+
 }
 
 
@@ -200,57 +285,85 @@ void ui::calculatevalues() {
 
 }
 
-void ui::Begin(const std::string& title, windowdata& data) {
+void ui::Begin(const char* title, windowdata& data) {
+
+	Renderer2D::SetTexture(fr->fonttexture, fr->textureindex);
 
 	if (data.visible) {
 
-		float ui_ortho = Window::OrthographicSize / 2.0f;
-		glm::mat4 orthomatrix = glm::ortho(-Window::Ratio * ui_ortho, Window::Ratio * ui_ortho, -ui_ortho, ui_ortho);
-		glEnable(GL_SCISSOR_TEST);
-		glScissor(data.x, Window::Height - (data.y + 1000), data.width, 1000);
-		float xpos = (float)data.x * widthor;
-		xpos -= hor;
-		float ypos = (float)data.y * heighto;
-		ypos = -(ypos - ho);
+		unsigned int id = Renderer2D::state.indicespointer / 6;
+		glm::vec4 clip = glm::vec4(data.x, data.y, data.x + data.width, Window::Height);
 
-		float width = (float)data.width * widthor;
-		float height = (float)WINDOW_TAB_HEIGHT * heighto;
+		quadindexes.push_back(id);
+		cliprects.push_back(clip);
 
-		float close_button_x = (float)(data.x + data.width - WINDOW_TAB_HEIGHT / 2) * widthor;
-		close_button_x -= hor;
+		// manage movement
+		{
+			if (mousehover(data.x, data.y, data.width - WINDOW_TAB_HEIGHT, WINDOW_TAB_HEIGHT))
+			{
+				if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS && !data.mouse_locked && !was_mouse_pressed) {
+					if (data.z != 0.9f) {
 
-		float close_button_area_width = (float)WINDOW_TAB_HEIGHT * widthor;
-		float close_button_area_height = (float)WINDOW_TAB_HEIGHT * heighto;
+						for (auto a : windowdatas) {
+							a->z = 0.2f;
+							a->mouse_locked = false;
+						}
+						data.z = 0.9f;
+					}
 
-		float close_button_width = (float)WINDOW_CLOSE_BUTTON_SIZE * widthor;
-		float close_button_height = (float)WINDOW_CLOSE_BUTTON_SIZE * heighto;
+					was_mouse_pressed = true;
 
-		Renderer2D::BeginScene(orthomatrix);
 
-		Renderer2D::DrawQuad({ xpos, ypos, data.z + 0.1f }, { width, height }, data.tab_color, { 0.5f, -0.5f });
-		fr->PrintStringui(title, xpos + (width - close_button_area_width) / 2, ypos - height / 2, data.z + 0.1f, 20.0f);
+					data.mouse_lock_x = (unsigned int)Window::Window_Mousex;
+					data.mouse_lock_y = (unsigned int)Window::Window_Mousey;
 
-		float line_height = 5.0f * heighto;
-		// line_width = close_button_width because both size is 25 pixel
+					data.storex = data.x;
+					data.storey = data.y;
 
-		Renderer2D::DrawQuad({ close_button_x, (ypos - close_button_area_height / 2), data.z + 0.1f }, { close_button_width, close_button_height }, data.panel_color);
-		Renderer2D::DrawRotatedQuad({ close_button_x, (ypos - close_button_area_height / 2), data.z + 0.1f }, { close_button_width, line_height }, 45.0f, data.tab_color);
-		Renderer2D::DrawRotatedQuad({ close_button_x, (ypos - close_button_area_height / 2), data.z + 0.1f }, { close_button_width, line_height }, 135.0f, data.tab_color);
+					data.mouse_locked = true;
+				}
+			}
+
+			if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE && data.mouse_locked) {
+				data.mouse_locked = false;
+			}
+
+			else if (data.mouse_locked) {
+				double curx, cury;
+				glfwGetCursorPos(Window::ID, &curx, &cury);
+
+				
+
+				int dx = (int)std::round(data.mouse_lock_x - (double)data.storex);
+				int dy = (int)std::round(data.mouse_lock_y - (double)data.storey);
+				data.x = curx - dx;
+				data.y = cury - dy;
+			}
+		}
+
+		Renderer2D::DrawQuad({ data.x, data.y, data.z + 0.1f }, { data.width, WINDOW_TAB_HEIGHT }, data.tab_color, { 0.5f, 0.5f });
+		fr->PrintStringui(title, data.x + (data.width - WINDOW_TAB_HEIGHT) / 2, data.y + WINDOW_TAB_HEIGHT / 2, data.z + 0.1f, 20.0f);
+
+		float close_button_x = data.x + data.width - WINDOW_TAB_HEIGHT / 2;
+
+		float ypos = (float)data.y + (float)WINDOW_TAB_HEIGHT / 2.0f;
+		Renderer2D::DrawQuad({ close_button_x, ypos, data.z + 0.1f }, { WINDOW_TAB_HEIGHT-3, WINDOW_TAB_HEIGHT-3 }, data.panel_color);
+		Renderer2D::DrawRotatedQuad({ close_button_x, ypos, data.z + 0.1f }, { WINDOW_TAB_HEIGHT, 5.0f }, 45.0f, data.tab_color);
+		Renderer2D::DrawRotatedQuad({ close_button_x, ypos, data.z + 0.1f }, { WINDOW_TAB_HEIGHT, 5.0f }, 135.0f, data.tab_color);
 
 		data.content_offset_x = 0;
 		data.content_offset_y = WINDOW_TAB_HEIGHT + data.offsety;
 
+
 	}
-	windowstack.push(&data);
+
+	activewindow = &data;
 }
 
 
 void ui::End() {
-	Renderer2D::EndScene();
-	glDisable(GL_SCISSOR_TEST);
-	auto& data = windowstack.top();
-	windowstack.pop();
-	data->maxheight = data->content_offset_y;
+	activewindow->maxheight = activewindow->content_offset_y;
+	activewindow = nullptr;
 }
 
 void ui::pushstyle(uistyle style) {
@@ -263,41 +376,33 @@ void ui::popstyle() {
 
 
 void ui::Panel(unsigned int aheight) {
-	windowdata* data = windowstack.top();
+	windowdata* data = activewindow;
 	if (data->visible) {
-		float xpos = (float)(data->x + data->content_offset_x) * widthor;
-		xpos -= hor;
-		float ypos = (float)(data->y + data->content_offset_y) * heighto;
-		ypos = -(ypos - ho);
+		float width = (float)data->width;
 
-		float width = (float)data->width * widthor;
-		float height = (float)aheight * heighto;
-
-		Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, data->panel_color, { 0.5f, -0.5f });
+		Renderer2D::DrawQuad({ data->x + data->content_offset_x, data->y + data->content_offset_y, data->z }, { data->width, aheight }, data->panel_color, { 0.5f, 0.5f });
 
 		if (!stylestack.empty()) {
 			uistyle style = stylestack.top();
 			if (style == uistyle::row_two_block) {
-				float xpos = (float)(data->x + data->width / 2) * widthor;
-				xpos -= hor;
-				float ypos = (float)(data->y + data->content_offset_y + aheight / 2) * heighto;
-				ypos = -(ypos - ho);
+				float x = (float)(data->x + data->width / 2);
+				float y = (float)(data->y + data->content_offset_y + aheight / 2);
 
-				float width = 5.0f * widthor;
-				float height = (float)aheight * heighto;
-
-				Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, data->tab_color);
+				Renderer2D::DrawQuad({ x, y, data->z }, { 5.0f, aheight }, data->tab_color);
 			}
 		}
 
 	}
 }
 
+
+// gives element width, by checking row_two_block is enabled or not
 void ui::updateuiparameters(windowdata* data, int& inputwidth, int& last_content_offsetx, int& last_content_offsety, float& width, float& height) {
+	
 	if (stylestack.empty() == false) {
 		if (stylestack.top() == uistyle::row_two_block) {
 			inputwidth = data->width / 2 - 12.5f;
-			width = ((float)data->width / 2 - 12.5f) * widthor;
+			width = ((float)data->width / 2 - 12.5f);
 			if (data->content_offset_x != 0) {
 				data->content_offset_x = 0;
 				data->content_offset_y += panelsize;
@@ -315,17 +420,18 @@ void ui::updateuiparameters(windowdata* data, int& inputwidth, int& last_content
 			last_content_offsety += panelsize;
 			data->content_offset_y += panelsize;
 		}
-		width = (float)(data->width - 10) * widthor;
+		width = (float)(data->width - 10);
 		inputwidth = data->width - 10;
 		Panel(panelsize);
 		data->content_offset_y += panelsize;
 	}
 
-	height = (float)elementsize * heighto;
+	height = (float)elementsize;
 }
 
-bool ui::Button(const std::string& text, MouseButtonClick c) {
-	windowdata* data = windowstack.top();
+bool ui::Button(const char* text, MouseButtonClick c) {
+
+	windowdata* data = activewindow;
 
 	if (data->visible) {
 
@@ -339,16 +445,12 @@ bool ui::Button(const std::string& text, MouseButtonClick c) {
 
 		updateuiparameters(data, inputwidth, last_content_offsetx, last_content_offsety, width, height);
 
-		float xpos = (float)(data->x + last_content_offsetx + 5) * widthor;
-		xpos -= hor;
-		float ypos = (float)(data->y + last_content_offsety + 5) * heighto;
-		ypos = -(ypos - ho);
-
-		if (mousehover(data->x + last_content_offsetx + 5, data->y + last_content_offsety + 5, inputwidth, 30) && data->y + last_content_offsety + 5 > 0 && data->y + last_content_offsety + 5 < 1000) {
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, data->tab_color, { 0.5f, -0.5f });
+		float x = (float)(data->x + last_content_offsetx + 5);
+		if (mousehover(x, data->y + last_content_offsety + 5, inputwidth, 30) && data->y + last_content_offsety + 5 > 0 && data->y + last_content_offsety + 5 < 1000) {
+			Renderer2D::DrawQuad({ x, data->y + last_content_offsety + 5, data->z }, { width, height }, data->tab_color, { 0.5f, 0.5f });
 			if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_LEFT) && !was_mouse_pressed && c == MouseButtonClick::LEFT_CLICK) {
-				activeinputbox.id = "";
-				was_mouse_pressed = false;
+				activeelementid = 0;
+				was_mouse_pressed = true;
 				return true;
 			}
 			else if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_RIGHT) && !was_mouse_pressed) {
@@ -356,16 +458,192 @@ bool ui::Button(const std::string& text, MouseButtonClick c) {
 			}
 		}
 		else {
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, data->panel_color + glm::vec4(0.1f, 0.1f, 0.1f, 0.0f), { 0.5f, -0.5f });
+			Renderer2D::DrawQuad({ x, data->y + last_content_offsety + 5, data->z }, { width, height }, data->panel_color + glm::vec4(0.1f, 0.1f, 0.1f, 0.0f), { 0.5f, 0.5f });
 		}
-		fr->PrintStringui(text, xpos + width / 2, ypos - height / 2, data->z, (float)fontsize);
+		fr->PrintStringui(text, x +  width / 2, data->y + last_content_offsety + 5 + (height / 2), data->z, (float)fontsize);
 	}
 	return false;
 }
 
+void ui::ColorEdit(glm::vec4& color) {
+	windowdata* data = activewindow;
+
+	if (data->visible) {
+
+		float width = 0.0f;
+		float height = 0.0f;
+
+		int inputwidth = 0;
+
+		int last_content_offsetx = data->content_offset_x;
+		int last_content_offsety = data->content_offset_y;
+
+		updateuiparameters(data, inputwidth, last_content_offsetx, last_content_offsety, width, height);
+
+		float x = data->x + last_content_offsetx + 5;
+		float y = data->y + last_content_offsety + 5;
+
+		Renderer2D::DrawQuad({ x, y, data->z }, { width, -height }, color, { 0.5f, -0.5f });
+
+		if (mousehover(data->x + last_content_offsetx + 5, data->y + last_content_offsety + 5, inputwidth, 30) && data->y + last_content_offsety + 5 > 0 && data->y + last_content_offsety + 5 < 1000) {
+			if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_LEFT) && !was_mouse_pressed) {
+				selectedcolor = &color;
+				Application::GetInstance().m_editorlayer->colorselectorwindowdata.visible = true;
+			}
+		}
+	}
+}
+
+
+void ui::ColorPicker() {
+  windowdata* data = activewindow;
+
+	if (data->visible) {
+
+		float degree = 0.0f;
+		int max = 0;
+		int min = 0;
+		float maxval = 0.0f;
+		float minval = 0.0f;
+		// find degree of main color 
+		{
+			if (selectedcolor->x <= selectedcolor->y && selectedcolor->x <= selectedcolor->z) {
+				min = 0;
+				minval = selectedcolor->x;
+			}
+			else if (selectedcolor->y <= selectedcolor->z) {
+				min = 1;
+				minval = selectedcolor->y;
+			}
+			else {
+				min = 2;
+				minval = selectedcolor->z;
+			}
+
+			if (selectedcolor->x >= selectedcolor->y && selectedcolor->x >= selectedcolor->z) {
+				max = 0;
+				maxval = selectedcolor->x;
+			}
+			else if (selectedcolor->y >= selectedcolor->z) {
+				max = 1;
+				maxval = selectedcolor->y;
+			}
+			else {
+				max = 2;
+				maxval = selectedcolor->z;
+			}
+
+			// degree
+			if (max == 0) {
+				degree = 60.0f * (selectedcolor->y - selectedcolor->z) / (maxval - minval);
+			}
+			else if (max == 1) {
+				degree = 60.0f * (2 + ((selectedcolor->z - selectedcolor->x) / (maxval - minval)));
+			}
+			else {
+				degree = 60.0f * (4 + ((selectedcolor->x - selectedcolor->y) / (maxval - minval)));
+			}
+
+			if (maxval - minval == 0.0f)
+				degree = 0.0f;
+
+			if (degree <= 0.0f)
+				degree += 360.0f;
+		}
+
+		float width = 0.0f;
+		float height = 0.0f;
+
+		int inputwidth = 0;
+
+		int last_content_offsetx = data->content_offset_x;
+		int last_content_offsety = data->content_offset_y;
+
+		updateuiparameters(data, inputwidth, last_content_offsetx, last_content_offsety, width, height);
+
+        float colorsatwidth = (float)(data->width - 10 - 100);
+		Panel(data->width - panelsize - 85);
+		data->content_offset_y += data->width - panelsize - 85;
+		float heightsector = colorsatwidth / 6.0f;
+
+		float trianglewidth = 10.0f;
+
+		float opacitytriangle = selectedcolor->a;
+
+		cpcolors[2] = getcolorfromdegree(degree);
+
+		float v = maxval;
+		float s = (maxval - minval) / maxval;
+
+		float sx = s;
+		float sy = 1.0f - v;
+		sx *= colorsatwidth;
+		sy *= colorsatwidth;
+
+		float nsx = data->x + last_content_offsetx + 5;
+		float nsy = data->y + last_content_offsety + 5;
+
+		// saturation
+        Renderer2D::DrawQuad({nsx, nsy, data->z}, {colorsatwidth, -colorsatwidth}, cpcolors, {0.5f, -0.5f});
+		Renderer2D::DrawQuad({ nsx + sx, nsy + sy, data->z }, { trianglewidth, trianglewidth }, EditorLayer::EditorLayerIcons["ColorSelect"]);
+
+		Renderer2D::DrawQuad({ nsx + colorsatwidth + 2, nsy-3, data->z }, { 26, -(colorsatwidth+6) }, { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.5f, -0.5f });
+		
+		// render main color pallate
+		for (unsigned int i = 0; i < 6; i++) {
+			Renderer2D::DrawQuad({ nsx + colorsatwidth + 5, nsy + (heightsector * i), data->z}, {20.0f, -heightsector}, cpmaincolors[i], glm::vec2(0.5f, -0.5f));
+		}
+
+		// draw triangle at main colors
+		float nv = degree / 360.0f;
+		Renderer2D::DrawRotatedTriangle({ nsx + colorsatwidth + 25, nsy + (nv * colorsatwidth), data->z }, { trianglewidth, trianglewidth }, 90.0f, glm::vec4(1.0f));
+
+		int x = data->x + last_content_offsetx + 5 + (data->width - 5 - 100);
+		int y = data->y + last_content_offsety + 5;
+
+		int mx = data->x + last_content_offsetx + 5;
+		int my = data->y + last_content_offsety + 5;
+
+
+		if (mousehover(x, y, 20, data->width - 110)) {
+			if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_LEFT)) {
+				int my = Window::Window_Mousey;
+				int ny = my - y;
+				float nd = (float)ny / (float)(data->width - 110);
+				glm::vec4 newcolor = getcolorfromdegree(360.0f * nd);
+				*selectedcolor = { newcolor.x, newcolor.y, newcolor.z, selectedcolor->a };
+			}
+		}
+		else if (mousehover(x + 30, y, 20, data->width - 110)) {
+			if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_LEFT)) {
+				int my = Window::Window_Mousey;
+				int ny = my - y;
+				float nd = (float)ny / (float)(data->width - 110);
+				selectedcolor->a = nd;
+			}
+		}
+		else if (mousehover(mx, my, data->width - 110, data->width - 110)) {
+			if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_LEFT)) {
+				int sx = Window::Window_Mousex;
+				int sy = Window::Window_Mousey;
+				float nsx = (float)(Window::Window_Mousex - mx) / (float)(data->width - 110);
+				float nsy = (float)(Window::Window_Mousey - my) / (float)(data->width - 110);
+				glm::vec4 color = getcolorfromdegree(degree);
+				glm::vec3 c1 = glm::mix(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(color), nsx);
+				glm::vec3 c2 = glm::mix(c1, glm::vec3(0.0f, 0.0f, 0.0f), nsy);
+				*selectedcolor = { c2.x, c2.y, c2.z, selectedcolor->a };
+			}
+		}
+
+		// render opacity plage
+		Renderer2D::DrawQuad({ x+31, y, data->z }, { 20, -colorsatwidth }, opacitycolors, { 0.5f, -0.5f });
+		Renderer2D::DrawRotatedTriangle({ x+51, y + opacitytriangle*colorsatwidth, data->z }, { trianglewidth, trianglewidth }, 90.0f, glm::vec4(1.0f));
+	}
+}
+
 void ui::Separator() {
 
-	windowdata* data = windowstack.top();
+	windowdata* data = activewindow;
 
 	if (data->visible) {
 
@@ -373,24 +651,15 @@ void ui::Separator() {
 			data->content_offset_x = 0;
 			data->content_offset_y += panelsize;
 		}
-
-		float xpos = (float)(data->x) * widthor;
-		xpos -= hor;
-		float ypos = (float)(data->y + data->content_offset_y) * heighto;
-		ypos = -(ypos - ho);
-
-		float width = (float)data->width * widthor;
-		float height = 5.0f * heighto;
-
-		Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, data->tab_color, { 0.5f, -0.5f });
+		Renderer2D::DrawQuad({ data->x, data->y + data->content_offset_y, data->z }, { data->width, -5.0f }, data->tab_color, { 0.5f, -0.5f });
 
 		data->content_offset_y += 5;
 	}
 }
 
 
-void ui::InputBox(const std::string& id, std::string& text) {
-	windowdata* data = windowstack.top();
+void ui::InputBox(const char* id, std::string& text) {
+	windowdata* data = activewindow;
 
 	if (data->visible) {
 
@@ -404,37 +673,39 @@ void ui::InputBox(const std::string& id, std::string& text) {
 
 		updateuiparameters(data, inputwidth, last_content_offsetx, last_content_offsety, width, height);
 
-		float xpos = (float)(data->x + last_content_offsetx + 5) * widthor;
-		xpos -= hor;
-		float ypos = (float)(data->y + last_content_offsety + 5) * heighto;
-		ypos = -(ypos - ho);
+		uint32_t hashid = HashString(id);
+		InputState& state = uiInputStates[hashid];
 
+		if (state.text.empty() && !state.active)
+			state.text = text;
 
 		if (mousehover(data->x + last_content_offsetx + 5, data->y + last_content_offsety + 5, inputwidth, 30) && data->y + last_content_offsety + 5 > 0 && data->y + last_content_offsety + 5 < 1000) {
 			if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_1) && !was_mouse_pressed) {
-				activeinputbox = { id, inputtype::TEXT, text };
+				activeelementid = hashid;
+				state.active = !state.active;
+				state.text = text;
+				state.type = InputType::TEXT;
 				was_mouse_pressed = true;
 				EditorLayer::camera_locked = true;
 			}
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, glm::vec4(1.0f), { 0.5f, -0.5f });
 		}
-		else if (activeinputbox.id == id)
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, glm::vec4(1.0f), { 0.5f, -0.5f });
-		else
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, glm::vec4(0.8f), { 0.5f, -0.5f });
-
-		if (activeinputbox.id == id) {
-			text = activeinputbox.text;
+		if (state.active && activeelementid == hashid) {
+			Renderer2D::DrawQuad({ data->x + last_content_offsetx + 5, data->y + last_content_offsety + 5, data->z }, { width, -height }, glm::vec4(1.0f), { 0.5f, -0.5f });
+			text = state.text;
+		}
+		else {
+			state.active = false;
+			Renderer2D::DrawQuad({ data->x + last_content_offsetx + 5, data->y + last_content_offsety + 5, data->z }, { width, -height }, glm::vec4(0.8f), { 0.5f, -0.5f });
 		}
 
-		fr->PrintStringui(text, xpos + width / 2, ypos - height / 2, data->z, (float)fontsize, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+		fr->PrintStringui(state.text.c_str(), data->x + last_content_offsetx + 5 + width / 2, data->y + last_content_offsety + 5 + height / 2, data->z, (float)fontsize, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	}
 
 }
 
 
-void ui::StateButton(const std::string& text, bool& value, bool value2) {
-	windowdata* data = windowstack.top();
+void ui::StateButton(const char* text, bool& value, bool value2) {
+	windowdata* data = activewindow;
 
 	if (data->visible) {
 
@@ -447,32 +718,30 @@ void ui::StateButton(const std::string& text, bool& value, bool value2) {
 		int last_content_offsety = data->content_offset_y;
 
 		updateuiparameters(data, inputwidth, last_content_offsetx, last_content_offsety, width, height);
-
-		float xpos = (float)(data->x + last_content_offsetx + 5) * widthor;
-		xpos -= hor;
-		float ypos = (float)(data->y + last_content_offsety + 5) * heighto;
-		ypos = -(ypos - ho);
 
 		if (mousehover(data->x + last_content_offsetx + 5, data->y + last_content_offsety + 5, inputwidth, 30) && data->y + last_content_offsety + 5 > 0 && data->y + last_content_offsety + 5 < 1000) {
 			if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_1) && !was_mouse_pressed) {
 				value = value2;
 				was_mouse_pressed = true;
-				activeinputbox.id = "";
+				activeelementid = 0;
 			}
 		}
 
+		float x = (float)(data->x + last_content_offsetx + 5);
+		float y = (float)(data->y + last_content_offsety + 5);
+
 		if (value == value2) {
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, data->tab_color, { 0.5f, -0.5f });
+			Renderer2D::DrawQuad({ x, y, data->z }, { width, -height }, data->tab_color, { 0.5f, -0.5f });
 		}
 		else {
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, data->panel_color + glm::vec4(0.1f, 0.1f, 0.1f, 0.0f), { 0.5f, -0.5f });
+			Renderer2D::DrawQuad({ x, y, data->z }, { width, -height }, data->panel_color + glm::vec4(0.1f, 0.1f, 0.1f, 0.0f), { 0.5f, -0.5f });
 		}
-		fr->PrintStringui(text, xpos + width / 2, ypos - height / 2, data->z, (float)fontsize);
+		fr->PrintStringui(text, x + width / 2, y + height / 2, data->z, (float)fontsize);
 	}
 }
 
-void ui::Label(const std::string& text) {
-	windowdata* data = windowstack.top();
+void ui::Label(const char* text) {
+	windowdata* data = activewindow;
 
 	if (data->visible) {
 
@@ -486,21 +755,14 @@ void ui::Label(const std::string& text) {
 
 		updateuiparameters(data, inputwidth, last_content_offsetx, last_content_offsety, width, height);
 
-		float xpos = (float)(data->x + last_content_offsetx + 5) * widthor;
-		xpos -= hor;
-		float ypos = (float)(data->y + last_content_offsety + 5) * heighto;
-		ypos = -(ypos - ho);
-
-		fr->PrintStringui(text, xpos + width / 2, ypos - height / 2, data->z, (float)fontsize);
+		fr->PrintStringui(text, data->x + last_content_offsetx + 5 + width / 2, data->y + last_content_offsety + 5 +  height / 2, data->z, (float)fontsize);
 
 	}
-
-
 }
 
 
-void ui::FloatInputBox(const std::string& id, float& value, float onclickvalue) {
-	windowdata* data = windowstack.top();
+void ui::FloatInputBox(const char* id, float& value, float onclickvalue) {
+	windowdata* data = activewindow;
 
 	if (data->visible) {
 
@@ -514,14 +776,17 @@ void ui::FloatInputBox(const std::string& id, float& value, float onclickvalue) 
 
 		updateuiparameters(data, inputwidth, last_content_offsetx, last_content_offsety, width, height);
 
-		float xpos = (float)(data->x + last_content_offsetx + 5) * widthor;
-		xpos -= hor;
-		float ypos = (float)(data->y + last_content_offsety + 5) * heighto;
-		ypos = -(ypos - ho);
+		uint32_t hashid = HashString(id);
+		InputState& state = uiInputStates[hashid];
+
+		if (state.text.empty() && !state.active)
+			state.text = std::to_string(value);
 
 		if (mousehover(data->x + last_content_offsetx + 5, data->y + last_content_offsety + 5, inputwidth, 30) && data->y + last_content_offsety + 5 > 0 && data->y + last_content_offsety + 5 < 1000) {
 			if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_1) && !was_mouse_pressed) {
-				activeinputbox = { id, inputtype::FLOAT, std::to_string(value) };
+				activeelementid = hashid;
+				state.active = !state.active;
+				state.type = InputType::FLOAT;
 				was_mouse_pressed = true;
 				EditorLayer::camera_locked = true;
 			}
@@ -529,28 +794,26 @@ void ui::FloatInputBox(const std::string& id, float& value, float onclickvalue) 
 			else if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_2) && !was_mouse_pressed) {
 				value = onclickvalue;
 				was_mouse_pressed = true;
-				activeinputbox = { id, inputtype::FLOAT, std::to_string(value) };
-				activeinputbox.text = std::to_string(value);
+				state.active = false;
+				state.text = std::to_string(value);
 				EditorLayer::camera_locked = true;
 			}
-
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, glm::vec4(1.0f), { 0.5f, -0.5f });
 		}
 
-		else if (activeinputbox.id == id)
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, glm::vec4(1.0f), { 0.5f, -0.5f });
-		else
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, glm::vec4(0.8f), { 0.5f, -0.5f });
+		float xpos = data->x + last_content_offsetx + 5;
+		float ypos = data->y + last_content_offsety + 5;
 
+		if (state.active && activeelementid == hashid)
+			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, -height }, glm::vec4(1.0f), { 0.5f, -0.5f });
+		else {
+			state.active = false;
+			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, -height }, glm::vec4(0.8f), { 0.5f, -0.5f });
+		}
 
-		if (activeinputbox.id == id)
-			fr->PrintStringui(activeinputbox.text, xpos + width / 2, ypos - height / 2, data->z, (float)fontsize, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-		else
-			fr->PrintStringui(std::to_string(value), xpos + width / 2, ypos - height / 2, data->z, (float)fontsize, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+		fr->PrintStringui(state.text.c_str(), xpos + width / 2, ypos + height / 2, data->z, (float)fontsize, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
-
-		if (activeinputbox.id == id) {
-			value = atof(activeinputbox.text.c_str());
+		if (activeelementid == hashid) {
+			value = atof(state.text.c_str());
 		}
 	}
 
@@ -560,8 +823,8 @@ void ui::FloatInputBox(const std::string& id, float& value, float onclickvalue) 
 
 // check box
 
-bool ui::CheckBox(const std::string& text, bool& value) {
-	windowdata* data = windowstack.top();
+bool ui::CheckBox(const char* text, bool& value) {
+	windowdata* data = activewindow;
 
 	if (data->visible) {
 
@@ -575,16 +838,14 @@ bool ui::CheckBox(const std::string& text, bool& value) {
 
 		updateuiparameters(data, inputwidth, last_content_offsetx, last_content_offsety, width, height);
 
-		float xpos = (float)(data->x + last_content_offsetx + 7) * widthor;
-		xpos -= hor;
-		float ypos = (float)(data->y + last_content_offsety + 7) * heighto;
-		ypos = -(ypos - ho);
+		float xpos = (float)(data->x + last_content_offsetx + 7);
+		float ypos = (float)(data->y + last_content_offsety + 7);
 
-		Renderer2D::DrawQuad({ xpos, ypos, data->z }, { height, height }, glm::vec4(1.0f), { 0.5f, -0.5f });
-		fr->PrintStringui(text, xpos + width / 2, ypos - height / 2, data->z, (float)fontsize);
+		Renderer2D::DrawQuad({ xpos, ypos, data->z }, { height, -height }, checkboxboundary, glm::vec4(1.0f), { 0.5f, -0.5f });
+		fr->PrintStringui(text, xpos + width / 2, ypos + height / 2, data->z, (float)fontsize);
 
 		if (value) {
-			Renderer2D::DrawQuad({ xpos + (height / 2), ypos - height / 2, data->z }, { (height * 0.7f), height * 0.7f }, { 0.0f, 0.0f, 0.0f, 1.0f });
+			Renderer2D::DrawQuad({ xpos + (height / 2), ypos + height / 2, data->z }, { (height * 0.7f), -height * 0.7f }, checkboxcenter, { 1.0f, 1.0f, 1.0f, 1.0f });
 		}
 
 		if (mousehover(data->x + last_content_offsetx + 5, data->y + last_content_offsety + 5, 30, 30) && data->y + last_content_offsety + 5 > 0 && data->y + last_content_offsety + 5 < 1000) {
@@ -599,8 +860,8 @@ bool ui::CheckBox(const std::string& text, bool& value) {
 }
 
 
-void ui::OptionSelector(std::vector<std::string> options, unsigned int& selectedoptionindex) {
-	windowdata* data = windowstack.top();
+void ui::OptionSelector(std::vector<const char*> options, unsigned int& selectedoptionindex) {
+	windowdata* data = activewindow;
 
 	if (data->visible) {
 
@@ -614,22 +875,19 @@ void ui::OptionSelector(std::vector<std::string> options, unsigned int& selected
 
 		updateuiparameters(data, inputwidth, last_content_offsetx, last_content_offsety, width, height);
 
-		float xpos = (float)(data->x + last_content_offsetx + 5) * widthor;
-		xpos -= hor;
-		float ypos = (float)(data->y + last_content_offsety + 5) * heighto;
-		ypos = -(ypos - ho);
+		float xpos = (float)(data->x + last_content_offsetx + 5);
+		float ypos = (float)(data->y + last_content_offsety + 5);
 
-		float xpos2 = (float)(data->x + inputwidth + last_content_offsetx) * widthor;
-		xpos2 -= hor;
+		float xpos2 = (float)(data->x + inputwidth + last_content_offsetx);
 
-		float textoffset = (float)(inputwidth / 2) * widthor;
+		float textoffset = (float)(inputwidth / 2);
 
-		Renderer2D::DrawQuad({ xpos, ypos, data->z }, { height, height }, data->tab_color, { 0.5f, -0.5f });
+		Renderer2D::DrawQuad({ xpos, ypos, data->z }, { height, -height }, data->tab_color, { 0.5f, -0.5f });
 		float trianglesize = height * 0.7f;
 
-		Renderer2D::DrawQuad({ xpos2, ypos, data->z }, { height, height }, data->tab_color, { -0.5f, -0.5f });
+		Renderer2D::DrawQuad({ xpos2, ypos, data->z }, { height, -height }, data->tab_color, { -0.5f, -0.5f });
 
-		fr->PrintStringui(options[selectedoptionindex], xpos + textoffset, ypos - height / 2, data->z, (float)fontsize);
+		fr->PrintStringui(options[selectedoptionindex], xpos + textoffset, ypos + height / 2, data->z, (float)fontsize);
 
 		if (mousehover(data->x + last_content_offsetx + 5, data->y + last_content_offsety + 5, 30, 30) && data->y + last_content_offsety + 5 > 0 && data->y + last_content_offsety + 5 < 1000) {
 			if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_1) && !was_mouse_pressed) {
@@ -637,11 +895,11 @@ void ui::OptionSelector(std::vector<std::string> options, unsigned int& selected
 				if (selectedoptionindex > 0)
 					selectedoptionindex--;
 			}
-			Renderer2D::DrawRotatedTriangle({ xpos + height / 2, ypos - height / 2, data->z }, { trianglesize, trianglesize }, 90.0f, glm::vec4(1.0f));
+			Renderer2D::DrawRotatedTriangle({ xpos + height / 2, ypos + height / 2, data->z }, { trianglesize, trianglesize }, 90.0f, glm::vec4(1.0f));
 		}
 
 		else
-			Renderer2D::DrawRotatedTriangle({ xpos + height / 2, ypos - height / 2, data->z }, { trianglesize, trianglesize }, 90.0f, data->panel_color);
+			Renderer2D::DrawRotatedTriangle({ xpos + height / 2, ypos + height / 2, data->z }, { trianglesize, trianglesize }, 90.0f, data->panel_color);
 
 
 		if (mousehover(data->x + inputwidth + last_content_offsetx - 30, data->y + last_content_offsety + 5, 30, 30) && data->y + last_content_offsety + 5 > 0 && data->y + last_content_offsety + 5 < 1000) {
@@ -650,16 +908,16 @@ void ui::OptionSelector(std::vector<std::string> options, unsigned int& selected
 				if (selectedoptionindex < options.size() - 1)
 					selectedoptionindex++;
 			}
-			Renderer2D::DrawRotatedTriangle({ xpos2 - height / 2, ypos - height / 2, data->z }, { trianglesize, trianglesize }, -90.0f, glm::vec4(1.0f));
+			Renderer2D::DrawRotatedTriangle({ xpos2 - height / 2, ypos + height / 2, data->z }, { trianglesize, trianglesize }, -90.0f, glm::vec4(1.0f));
 		}
 		else
-			Renderer2D::DrawRotatedTriangle({ xpos2 - height / 2, ypos - height / 2, data->z }, { trianglesize, trianglesize }, -90.0f, data->panel_color);
+			Renderer2D::DrawRotatedTriangle({ xpos2 - height / 2, ypos + height / 2, data->z }, { trianglesize, trianglesize }, -90.0f, data->panel_color);
 	}
 }
 
 
 void ui::Image(SubTexture* image) {
-	windowdata* data = windowstack.top();
+	windowdata* data = activewindow;
 
 	if (data->visible) {
 		if (data->content_offset_x != 0) {
@@ -686,18 +944,16 @@ void ui::Image(SubTexture* image) {
 
 
 
-			float x = (float)(data->x + data->content_offset_x) * widthor;
-			x -= hor;
-			float y = (float)(data->y + data->content_offset_y) * heighto;
-			y = -(y - ho);
-			float yoffset = 200.0f * heighto;
-			float xoffset = 200.0f * widthor;
+			float x = (float)(data->x + data->content_offset_x);
+			float y = (float)(data->y + data->content_offset_y);
+			float yoffset = 200.0f;
+			float xoffset = 200.0f;
 
-			float wr = 400.0f * widthor;
-			float hr = 400.0f * heighto;
+			float wr = 400.0f;
+			float hr = 400.0f;
 
-			Renderer2D::DrawQuad({ x, y, data->z }, { ((float)400 / Window::Width) * Window::OrthographicSize * Window::Ratio, ((float)400 / Window::Height) * Window::OrthographicSize }, data->panel_color, { 0.5f, -0.5f });
-			Renderer2D::DrawQuad({ x + xoffset, y - yoffset, data->z }, { width * wr, height * hr }, *image);
+			Renderer2D::DrawQuad({ x, y, data->z }, { 400, -400 }, data->panel_color, { 0.5f, -0.5f });
+			Renderer2D::DrawQuad({ x + xoffset, y + yoffset, data->z }, { width * wr, height * hr }, *image);
 
 
 			data->content_offset_y += 400;
@@ -706,8 +962,8 @@ void ui::Image(SubTexture* image) {
 }
 
 
-void ui::UIntInputBox(const std::string& id, unsigned int& value, int onclickvalue) {
-	windowdata* data = windowstack.top();
+void ui::UIntInputBox(const char* id, unsigned int& value, int onclickvalue) {
+	windowdata* data = activewindow;
 
 	if (data->visible) {
 
@@ -721,43 +977,53 @@ void ui::UIntInputBox(const std::string& id, unsigned int& value, int onclickval
 
 		updateuiparameters(data, inputwidth, last_content_offsetx, last_content_offsety, width, height);
 
-		float xpos = (float)(data->x + last_content_offsetx + 5) * widthor;
-		xpos -= hor;
-		float ypos = (float)(data->y + last_content_offsety + 5) * heighto;
-		ypos = -(ypos - ho);
+		float xpos = (float)(data->x + last_content_offsetx + 5);
+		float ypos = (float)(data->y + last_content_offsety + 5);
+
+		uint32_t hashid = HashString(id);
+		InputState& state = uiInputStates[hashid];
+
+		if (state.text.empty() && !state.active) {
+			state.text = std::to_string(value);
+		}
 
 		if (mousehover(data->x + last_content_offsetx + 5, data->y + last_content_offsety + 5, inputwidth, 30) && data->y + last_content_offsety + 5 > 0 && data->y + last_content_offsety + 5 < 1000) {
 			if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_1) && !was_mouse_pressed) {
 				was_mouse_pressed = true;
-				activeinputbox = { id, inputtype::INT, std::to_string(value) };
+				activeelementid = hashid;
+				state.active = !state.active;
+				state.type = InputType::INT;
+				state.text = std::to_string(value);
 				EditorLayer::camera_locked = true;
 			}
 
 			else if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_2) && !was_mouse_pressed) {
 				was_mouse_pressed = true;
 				value = onclickvalue;
-				activeinputbox = { id, inputtype::INT, std::to_string(value) };
+				state.active = false;
+				activeelementid = 0;
+				state.type = InputType::INT;
+				state.text = std::to_string(value);
 				EditorLayer::camera_locked = true;
 			}
 		}
 
+		if (activeelementid != hashid)
+			state.active = false;
+
 
 
 		// if input box selected its highlighted
-		if (activeinputbox.id == id)
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, glm::vec4(1.0f), { 0.5f, -0.5f });
+		if (state.active && activeelementid == hashid)
+			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, -height }, glm::vec4(1.0f), { 0.5f, -0.5f });
 		else
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, glm::vec4(0.8f), { 0.5f, -0.5f });
+			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, -height }, glm::vec4(0.8f), { 0.5f, -0.5f });
 
 
-		if (activeinputbox.id == id)
-			fr->PrintStringui(activeinputbox.text, xpos + width / 2, ypos - height / 2, data->z, (float)fontsize, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-		else
-			fr->PrintStringui(std::to_string(value), xpos + width / 2, ypos - height / 2, data->z, (float)fontsize, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+		fr->PrintStringui(state.text.c_str(), xpos + width / 2, ypos + height / 2, data->z, (float)fontsize, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
-
-		if (activeinputbox.id == id) {
-			value = atof(activeinputbox.text.c_str());
+		if (state.active) {
+			value = atof(state.text.c_str());
 		}
 	}
 
@@ -767,8 +1033,8 @@ void ui::UIntInputBox(const std::string& id, unsigned int& value, int onclickval
 // for uint16
 
 
-void ui::UInt16InputBox(const std::string& id, uint16_t& value, int onclickvalue) {
-	windowdata* data = windowstack.top();
+void ui::UInt16InputBox(const char* id, uint16_t& value, int onclickvalue) {
+	windowdata* data = activewindow;
 
 	if (data->visible) {
 
@@ -782,49 +1048,60 @@ void ui::UInt16InputBox(const std::string& id, uint16_t& value, int onclickvalue
 
 		updateuiparameters(data, inputwidth, last_content_offsetx, last_content_offsety, width, height);
 
-		float xpos = (float)(data->x + last_content_offsetx + 5) * widthor;
-		xpos -= hor;
-		float ypos = (float)(data->y + last_content_offsety + 5) * heighto;
-		ypos = -(ypos - ho);
+		float xpos = (float)(data->x + last_content_offsetx + 5);
+		float ypos = (float)(data->y + last_content_offsety + 5);
+
+		uint32_t hashid = HashString(id);
+		InputState& state = uiInputStates[hashid];
+
+		if (state.text.empty() && !state.active)
+			state.text = std::to_string(value);
 
 		if (mousehover(data->x + last_content_offsetx + 5, data->y + last_content_offsety + 5, inputwidth, 30) && data->y + last_content_offsety + 5 > 0 && data->y + last_content_offsety + 5 < 1000) {
 			if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_1) && !was_mouse_pressed) {
-				activeinputbox = { id, inputtype::INT, std::to_string(value) };
-				EditorLayer::camera_locked = true;
 				was_mouse_pressed = true;
+				activeelementid = hashid;
+				state.active = !state.active;
+				state.type = InputType::INT;
+				state.text = std::to_string(value);
+				EditorLayer::camera_locked = true;
 			}
 
 			else if (glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_2) && !was_mouse_pressed) {
-				value = onclickvalue;
-				activeinputbox = { id, inputtype::INT, std::to_string(value) };
 				was_mouse_pressed = true;
+				value = onclickvalue;
+				state.active = false;
+				activeelementid = 0;
+				state.type = InputType::INT;
+				state.text = std::to_string(value);
+				EditorLayer::camera_locked = true;
 			}
 		}
 
-
+		if (activeelementid != hashid) {
+			state.active = false;
+		}
 
 		// if input box selected its highlighted
-		if (activeinputbox.id == id)
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, glm::vec4(1.0f), { 0.5f, -0.5f });
+		if (state.active && activeelementid == hashid)
+			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, -height }, glm::vec4(1.0f), { 0.5f, -0.5f });
 		else
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, glm::vec4(0.8f), { 0.5f, -0.5f });
+			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, -height }, glm::vec4(0.8f), { 0.5f, -0.5f });
 
 
-		if (activeinputbox.id == id)
-			fr->PrintStringui(activeinputbox.text, xpos + width / 2, ypos - height / 2, data->z, (float)fontsize, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-		else
-			fr->PrintStringui(std::to_string(value), xpos + width / 2, ypos - height / 2, data->z, (float)fontsize, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
-		if (activeinputbox.id == id) {
-			value = atof(activeinputbox.text.c_str());
+		fr->PrintStringui(state.text.c_str(), xpos + width / 2, ypos + height / 2, data->z, (float)fontsize, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+		
+		if (state.active) {
+			value = atof(state.text.c_str());
 		}
 	}
 
 }
 
 
-bool ui::DropDownButton(const std::string& text, bool& value, unsigned int uioffset) {
-	windowdata* data = windowstack.top();
+bool ui::DropDownButton(const char* text, bool& value, unsigned int uioffset) {
+	windowdata* data = activewindow;
 
 	if (data->visible) {
 
@@ -839,13 +1116,11 @@ bool ui::DropDownButton(const std::string& text, bool& value, unsigned int uioff
 
 		updateuiparameters(data, inputwidth, last_content_offsetx, last_content_offsety, width, height);
 
-		float xpos = (float)(data->x + last_content_offsetx + 5 + uioffset) * widthor;
-		xpos -= hor;
-		float ypos = (float)(data->y + last_content_offsety + 5) * heighto;
-		ypos = -(ypos - ho);
+		float xpos = (float)(data->x + last_content_offsetx + 5 + uioffset);
+		float ypos = (float)(data->y + last_content_offsety + 5);
 
-		float buttonwidth = 15.0f * widthor;
-		float buttonheight = 15.0f * heighto;
+		float buttonwidth = 15.0f;
+		float buttonheight = 15.0f;
 
 
 		if (mousehover(data->x + last_content_offsetx + 5 + uioffset, data->y + last_content_offsety + 5, 30, 30)) {
@@ -854,17 +1129,17 @@ bool ui::DropDownButton(const std::string& text, bool& value, unsigned int uioff
 		}
 	
 		if (mousehover(data->x + last_content_offsetx + 35 + uioffset, data->y + last_content_offsety + 5, inputwidth - uioffset, 30)) {
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, data->panel_color - glm::vec4(.1f, .1f, .1f, .0f), { .5f, -.5f });
+			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, -height }, data->panel_color - glm::vec4(.1f, .1f, .1f, .0f), { .5f, -.5f });
 		}
 		else {
-			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, height }, data->panel_color, { .5f, -.5f });
+			Renderer2D::DrawQuad({ xpos, ypos, data->z }, { width, -height }, data->panel_color, { .5f, -.5f });
 		}
 
 		if (value)
-			Renderer2D::DrawRotatedTriangle({ xpos + height / 1.7f, ypos - height / 2, data->z }, { buttonwidth, buttonheight }, -180.0f, data->tab_color);
+			Renderer2D::DrawRotatedTriangle({ xpos + height / 1.7f, ypos + height / 2, data->z }, { buttonwidth, buttonheight }, -180.0f, data->tab_color);
 		else
-			Renderer2D::DrawRotatedTriangle({ xpos + height / 1.7f, ypos - height / 2, data->z }, { buttonwidth, buttonheight }, -90.0f, data->tab_color);
-		fr->PrintStringui(text, xpos + width / 2, ypos - height / 2, data->z, (float)fontsize);
+			Renderer2D::DrawRotatedTriangle({ xpos + height / 1.7f, ypos + height / 2, data->z }, { buttonwidth, buttonheight }, -90.0f, data->tab_color);
+		fr->PrintStringui(text, xpos + width / 2, ypos + height / 2, data->z, (float)fontsize);
 
 		bool onclicked = false;
 		if (mousehover(data->x + last_content_offsetx + 35 + uioffset, data->y + last_content_offsety + 5, inputwidth, 30) && glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_LEFT) && !was_mouse_pressed)
@@ -877,21 +1152,27 @@ bool ui::DropDownButton(const std::string& text, bool& value, unsigned int uioff
 
 bool ui::ImageButton(glm::ivec2 windowpos, glm::ivec2 size, SubTexture& image, float opacity) {
 
-	float xpos = (1.0f / Window::Width) * Window::OrthographicSize * Window::Ratio * windowpos.x;
-	xpos -= ((Window::OrthographicSize * Window::Ratio) / 2.0f);
-
-	float ypos = (1.0f / Window::Height) * Window::OrthographicSize * windowpos.y;
-	ypos -= (Window::OrthographicSize / 2.0f);
-	ypos = 0.0f - ypos;
-
-	float width = (1.0f / Window::Width) * Window::OrthographicSize * Window::Ratio * size.x;
-	float height = (1.0f / Window::Height) * Window::OrthographicSize * size.y;
-
-	Renderer2D::DrawQuad({xpos, ypos}, glm::vec2(width, height), image, glm::vec4(1.0f, 1.0f, 1.0f, opacity), glm::vec2(0.5f, -0.5f));
+	Renderer2D::DrawQuad({windowpos.x, windowpos.y}, glm::vec2(size.x, -size.y), image, glm::vec4(1.0f, 1.0f, 1.0f, opacity), glm::vec2(0.5f, -0.5f));
 
 	if (mousehover(windowpos.x, windowpos.y, size.x, size.y) && !was_mouse_pressed && glfwGetMouseButton(Window::ID, GLFW_MOUSE_BUTTON_LEFT)) {
 		return true;
 	}
 
 	return false;
+}
+
+unsigned int ui::RadioButtonGroup(const std::vector <const char*>& options, std::vector<bool> &checkoptions) {
+	
+	unsigned int len = options.size();
+
+	
+	return 0;
+}
+
+uint32_t ui::HashString(const char* str) {
+	uint32_t hash = 2166136261u;
+	while (*str) {
+		hash = (hash ^ (uint8_t)*str++) * 16777619u;
+	}
+	return hash;
 }

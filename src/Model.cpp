@@ -58,14 +58,18 @@ Mesh Model::processmesh(aiMesh* mesh, const aiScene* scene) {
 			vertex.normal.z = mesh->mNormals[i].z;
 		}
 
-		if (mesh->HasVertexColors(i)) {
-			std::cout << "yes" << std::endl;
-			glm::vec4 acolor;
-			acolor.r = mesh->mColors[i]->r;
-			acolor.g = mesh->mColors[i]->g;
-			acolor.b = mesh->mColors[i]->b;
-			acolor.a = mesh->mColors[i]->a;
-			vertex.color = acolor;
+		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+		if (material) {
+			aiColor4D color;
+			if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_DIFFUSE, color)) {
+				glm::vec4 acolor;
+				acolor.r = color.r;
+				acolor.g = color.g;
+				acolor.b = color.b;
+				acolor.a = color.a;
+				vertex.color = acolor;
+			}
 		}
 
 		if (mesh->mTextureCoords[0]) {

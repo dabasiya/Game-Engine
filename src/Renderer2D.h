@@ -4,6 +4,7 @@
 #include "texture.h"
 #include "shader.h"
 #include <glm/glm.hpp>
+#include <vector>
 
 
 
@@ -44,6 +45,8 @@ struct Renderer2D {
 	// stores data for rendering
 	static struct Vertex* memorybuffer;
 
+	static unsigned int GetUnusedTextureIndex();
+
 	// this function allocate memory for vertex buffer, and set element values in indices buffer
 	static void Init();
 
@@ -63,6 +66,8 @@ struct Renderer2D {
 	// it uses when batch is full then this function used for drawcall and reset batch state data
 	static void Flush();
 
+	static uint32_t HashString(const char* str);
+
 	// texture array
 
 	static std::shared_ptr<Texture> textures[];
@@ -81,10 +86,13 @@ struct Renderer2D {
 	static void DrawQuad(const glm::mat4& translation, const glm::vec4& color);
 	static void DrawQuad(const glm::vec2& position, const glm::vec2& scale, const glm::vec4& color, glm::vec2 ref = { 0.0f, 0.0f });
 	static void DrawQuad(const glm::vec3& position, const glm::vec2& scale, const glm::vec4& color, glm::vec2 ref = { 0.0f, 0.0f });
-
+  static void DrawQuad(const glm::vec3& position, const glm::vec2& scale, const std::vector<glm::vec4>& colors, glm::vec2 ref = {0.0f, 0.0f});
 
 	static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& scale, float angle, const glm::vec4& color, glm::vec2 ref = { 0.0f, 0.0f });
 	static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& scale, float angle, const glm::vec4& color, glm::vec2 ref = { 0.0f, 0.0f });
+	static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& scale, const glm::vec3& rotations, const glm::vec4& color, glm::vec2 ref = { 0.0f, 0.0f });
+
+
 
 	// for drawing textured quad 
 	static void DrawQuad(const glm::mat4& translation, const float textureindex);
@@ -98,13 +106,16 @@ struct Renderer2D {
 	static void DrawQuad(const glm::vec3& position, const glm::vec2& scale, const SubTexture& a_subtexture, const glm::vec4& a_color = glm::vec4(1.0f), glm::vec2 ref = { 0.0f, 0.0f });
 	static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& scale, float angle, const SubTexture& a_subtexture, float opacity, glm::vec2 ref = glm::vec2(0.0f, 0.0f));
 	static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& scale, float angle, const SubTexture& a_subtexture, float opacity, glm::vec2 ref = glm::vec2(0.0f, 0.0f));
+	static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& scale, const glm::vec3& rotations, const SubTexture& a_subtexture, float opacity, glm::vec2 ref = { 0.0f, 0.0f });
 
 	// for drawing with subtexture * color
 	static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& scale, float angle, const SubTexture& a_subtexture, const glm::vec4& color, glm::vec2 ref = glm::vec2(0.0f));
 	static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& scale, float angle, const SubTexture& a_subtexture, const glm::vec4& color, glm::vec2 ref = glm::vec2(0.0f));
+	static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& scale, const glm::vec3& rotation, const SubTexture& a_subtexture, const glm::vec4& color, glm::vec2 ref = glm::vec2(0.0f));
 
 	static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& scale, float angle, const float textureindex, glm::vec2 ref = { 0.0f, 0.0f });
 	static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& scale, float angle, const float textureindex, glm::vec2 ref = { 0.0f, 0.0f });
+	static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& scale, const glm::vec3& rotations, const float textureindex, glm::vec2 ref = {0.0f, 0.0f});
 
 
 	// functions for draw triangles

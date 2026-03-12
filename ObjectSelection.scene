@@ -1,0 +1,60 @@
+Scene: Undefined
+texture13:
+  path: res/EditorLayerIcons.png
+texture15:
+  path: res/icons.png
+Entities:
+  - Entity: 2
+    NameComponent:
+      name: Direction_Light
+      active: true
+    TransformComponent:
+      position: [0, 18.9782295, 34.592659]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+    LightComponent:
+      Type: 0
+      Angle: 0
+      Color: [0.986242592, 0.98725462, 0.989655197, 0.682758629]
+      Direction: [0, -1, -0.100000001]
+    ChildEntities:
+      []
+  - Entity: 1
+    NameComponent:
+      name: Base
+      active: true
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 90, 0]
+      scale: [1, 1, 1]
+    Model3DComponent:
+      filepath: res/base.obj
+      shadername: ""
+      bloom: false
+    ChildEntities:
+      []
+  - Entity: 0
+    NameComponent:
+      name: Camera
+      active: true
+    TransformComponent:
+      position: [0.355145961, 11.3997726, 24.682497]
+      rotation: [-35.7175865, -0.447623193, 0]
+      scale: [1, 1, 1]
+    CameraComponent:
+      min_x: 0
+      max_x: 0
+      min_y: 0
+      max_y: 0
+      camerao:
+        near: 0
+        far: 20
+        size: 0
+      camerap:
+        angle: 45
+        near: 0.100000001
+        far: 100
+      cameratype: 1
+      primary: true
+    ChildEntities:
+      []

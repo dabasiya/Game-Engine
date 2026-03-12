@@ -12,7 +12,7 @@ PhysicsSystem::PhysicsSystem() {
     m_dynamicsWorld = new btDiscreteDynamicsWorld(
         m_dispatcher, m_broadphase, m_solver, m_collisionConfig
     );
-    m_dynamicsWorld->setGravity(btVector3(0, -0.98f, 0)); // Earth gravity
+    m_dynamicsWorld->setGravity(btVector3(0, -9.8f, 0)); // Earth gravity
 }
 
 PhysicsSystem::~PhysicsSystem() {

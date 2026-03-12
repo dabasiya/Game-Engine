@@ -1,0 +1,59 @@
+Scene: Undefined
+texture13:
+  path: res/EditorLayerIcons.png
+texture15:
+  path: res/icons.png
+Entities:
+  - Entity: 2
+    NameComponent:
+      name: light
+      active: true
+    TransformComponent:
+      position: [10.6395159, 5.01974106, -0.865207911]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+    LightComponent:
+      Type: 1
+      Angle: 45
+      Color: [1, 1, 1]
+      Direction: [-0.5, 1, 1]
+    ChildEntities:
+      []
+  - Entity: 1
+    NameComponent:
+      name: camera
+      active: true
+    TransformComponent:
+      position: [22.2277336, -6.96182632, 0.355091691]
+      rotation: [18.7324142, 98.0891876, 0]
+      scale: [1, 1, 1]
+    CameraComponent:
+      min_x: 0
+      max_x: 0
+      min_y: 0
+      max_y: 0
+      camerao:
+        near: 0
+        far: 20
+        size: 0
+      camerap:
+        angle: 45
+        near: 0.100000001
+        far: 100
+      cameratype: 1
+      primary: true
+    ChildEntities:
+      []
+  - Entity: 0
+    NameComponent:
+      name: cube
+      active: true
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    Model3DComponent:
+      filepath: res/pistol.obj
+      shadername: ""
+    ChildEntities:
+      []

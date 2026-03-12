@@ -43,19 +43,22 @@ void Mesh::Draw(Shader& shader) {
 	vao.Bind();
 	ebo.Bind();
 
+	bool hasnormalmap = false;
+
 	for (unsigned int i = 0; i < textures.size(); i++) {
 
 		std::string number;
 		std::string name = textures[i]->type;
 
-
 		if (name == "texture_diffuse")
 			number = std::to_string(diffusenr++);
 		else if (name == "texture_specular")
 			number = std::to_string(specularnr++);
-		else if (name == "texture_normalnr")
+		else if (name == "texture_normal") {
 			number = std::to_string(normalnr++);
-		else if (name == "texture_heightnr")
+			hasnormalmap = true;
+		}
+		else if (name == "texture_height")
 			number = std::to_string(heightnr++);
 
 		name += number;
@@ -63,5 +66,6 @@ void Mesh::Draw(Shader& shader) {
 		textures[i]->Bind(shader, name, i);
 	}
 	shader.SetInt("hastexture", hastexture);
+	shader.SetInt("hasnormalmap", hasnormalmap);
 	glDrawElements(GL_TRIANGLES, size, GL_UNSIGNED_INT, 0);
 }

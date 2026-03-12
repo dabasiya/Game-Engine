@@ -7,6 +7,13 @@ layout (location = 3) in vec2 atexcoords;
 
 uniform mat4 projectionview;
 
+uniform vec4 clips[16];
+uniform int quadindexes[16];
+
+uniform bool isui;
+
+flat out vec4 cliprect;
+out vec2 pos;
 
 out float texindex;
 out vec4 color;
@@ -17,4 +24,19 @@ void main() {
     color = acolor;
     texcoords = atexcoords;
     texindex = atexindex;
+
+    if(isui) {
+        pos = vec2(apos.x, apos.y);
+        int elementid = gl_VertexID / 4;
+        for(int i = 0; i<16; i++) {
+            
+            if(elementid >= quadindexes[i+1])
+                continue;
+            else if(elementid >= quadindexes[i])
+            {
+                cliprect = clips[i];
+                break;
+            }
+        }
+    }
 }

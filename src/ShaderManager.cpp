@@ -13,6 +13,11 @@ void ShaderManager::Add(const std::string& name, const std::string& vertexshader
 	s_shadernames.push_back(name);
 }
 
+void ShaderManager::Add(const std::string& name, const std::string& computepath) {
+	s_shadermap[name] = std::make_shared<Shader>(computepath.c_str());
+	s_shadernames.push_back(name);
+}
+
 void ShaderManager::Remove(const std::string& name) {
 	s_shadermap[name]->Delete();
 

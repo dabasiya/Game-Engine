@@ -30,7 +30,7 @@ struct Texture {
 	std::string path;
 
 	Texture(const char* path);
-	Texture(unsigned int a_width, unsigned int a_height, int a_internalformat, int a_format, int a_type); 
+	Texture(unsigned int a_width, unsigned int a_height, int a_internalformat, int a_format, int a_type, bool clamp_border = true); 
 	Texture(unsigned int a_width, unsigned int a_height, int a_internalformat);
 	Texture(const char* path, const std::string& type);
 

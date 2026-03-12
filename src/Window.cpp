@@ -45,7 +45,7 @@ Window::Window(const std::string& a_title, unsigned int a_width, unsigned int a_
 	Width = a_width;
 	Height = a_height;
 	glfwInit();
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	//glfwWindowHint(GLFW_SAMPLES, 4);
 	ID = glfwCreateWindow(Width, Height, Title.c_str(), nullptr, nullptr);
 	glfwMakeContextCurrent(ID);
 	glfwSwapInterval(1);
@@ -54,7 +54,7 @@ Window::Window(const std::string& a_title, unsigned int a_width, unsigned int a_
 }
 
 void Window::SwapBuffers() {
-	glfwPollEvents();
+	//glfwPollEvents();
 	glfwSwapBuffers(ID);
 }
 

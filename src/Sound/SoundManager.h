@@ -15,6 +15,7 @@ struct SoundManager {
 	std::map<std::string, FMOD::Sound*> m_sounds;
 	std::map<std::string, FMOD::Channel*> m_channels;
 
+	static SoundManager* GetInstance();
 	SoundManager();
 	~SoundManager();
 
